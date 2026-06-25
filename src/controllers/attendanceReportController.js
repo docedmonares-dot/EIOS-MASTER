@@ -1,0 +1,37 @@
+const pool = require('../config/database');
+
+exports.getDailyAttendanceReport = async (req, res) => {
+    try {
+        const { date } = req.query;
+
+        const result = await pool.query(`
+            SELECT
+                ea.attendance_id,
+                ea.enumerator_id,
+                p.full_name,
+                ea.deployment_id,
+                ea.clock_in_time,
+                ea.clock_out_time,
+                ea.attendance_status,
+                EXTRACT(EPOCH FROM (ea.clock_out_time - ea.clock_in_time))/3600 AS hours_worked
+            FROM enumerator_attendance ea
+            LEFT JOIN personnel p
+                ON ea.enumerator_id = p.personnel_id
+            WHERE DATE(ea.clock_in_time) = $1
+            ORDER BY ea.clock_in_time ASC
+        `, [date]);
+
+        res.json({
+            success: true,
+            date: date,
+            total_records: result.rows.length,
+            data: result.rows
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            error: err.message
+        });
+    }
+};
