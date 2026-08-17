@@ -18,6 +18,7 @@ import AdministrationDashboardPage from "../modules/administration/pages/Adminis
 import EnterpriseFoundationPage from "../modules/administration/pages/EnterpriseFoundationPage";
 import GeographicMasterPage from "../modules/administration/pages/GeographicMasterPage";
 import EnterpriseJobManagerPage from "../modules/administration/pages/EnterpriseJobManagerPage";
+import SystemHealthPage from "../modules/administration/pages/SystemHealthPage";
 import UserAdministrationPage from "../modules/administration/pages/UserAdministrationPage";
 
 import FieldEnumeratorWorkspacePage from "../modules/field-operations/pages/FieldEnumeratorWorkspacePage";
@@ -297,6 +298,15 @@ export default function AppRouter() {
           element={
             <ProtectedModule allowedRoles={ADMIN_ROLES}>
               <EnterpriseJobManagerPage />
+            </ProtectedModule>
+          }
+        />
+
+        <Route
+          path="/administration/system-health"
+          element={
+            <ProtectedModule allowedRoles={ADMIN_ROLES}>
+              <SystemHealthPage />
             </ProtectedModule>
           }
         />

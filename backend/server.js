@@ -161,6 +161,11 @@ app.use(
     require("./src/routes/fieldMap")
 );
 
+app.use(
+    "/api/system-health",
+    require("./src/routes/systemHealth")
+);
+
 /* ======================
    MEMORY STORES
 ====================== */
