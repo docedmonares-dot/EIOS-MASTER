@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -66,6 +67,12 @@ export default function FieldEnumeratorWorkspacePage() {
     synchronizing,
     setSynchronizing,
   ] = useState(false);
+
+  const syncLockRef = useRef(false);
+
+  const [isOnline, setIsOnline] = useState(
+    () => navigator.onLine
+  );
 
   const [
     syncMessage,
@@ -312,13 +319,15 @@ export default function FieldEnumeratorWorkspacePage() {
 
   async function synchronizePendingResponses() {
     if (
-      synchronizing ||
+      syncLockRef.current ||
+      !navigator.onLine ||
       pendingResponses.length === 0
     ) {
       return;
     }
 
     try {
+      syncLockRef.current = true;
       setSynchronizing(true);
       setSyncMessage("");
       setSyncError("");
@@ -364,9 +373,54 @@ export default function FieldEnumeratorWorkspacePage() {
           "Unable to synchronize pending interviews."
       );
     } finally {
+      syncLockRef.current = false;
       setSynchronizing(false);
     }
   }
+
+  const automaticSyncRef = useRef(null);
+
+  useEffect(() => {
+    automaticSyncRef.current = synchronizePendingResponses;
+  });
+
+  useEffect(() => {
+    function handleOnline() {
+      setIsOnline(true);
+      automaticSyncRef.current?.();
+    }
+
+    function handleOffline() {
+      setIsOnline(false);
+    }
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    const retryTimer = window.setInterval(() => {
+      if (navigator.onLine) {
+        automaticSyncRef.current?.();
+      }
+    }, 30000);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+      window.clearInterval(retryTimer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isOnline || pendingSyncCount === 0) {
+      return undefined;
+    }
+
+    const startupTimer = window.setTimeout(() => {
+      automaticSyncRef.current?.();
+    }, 1000);
+
+    return () => window.clearTimeout(startupTimer);
+  }, [isOnline, pendingSyncCount]);
 
   const displayName =
     user?.name ||
@@ -788,16 +842,9 @@ export default function FieldEnumeratorWorkspacePage() {
             GPS Status
           </button>
 
-<button
-  type="button"
-  onClick={
-    synchronizePendingResponses
-  }
-  disabled={
-    synchronizing ||
-    loadingOfflineResponses ||
-    pendingSyncCount === 0
-  }
+<div
+  role="status"
+  aria-live="polite"
   style={{
               minHeight: "58px",
               display: "inline-flex",
@@ -816,21 +863,18 @@ color:
   !synchronizing
     ? "#0f172a"
     : "#94a3b8",
-cursor:
-  pendingSyncCount > 0 &&
-  !synchronizing
-    ? "pointer"
-    : "not-allowed",
 fontWeight: 700,
             }}
           >
             <RefreshCw size={21} />
             {synchronizing
               ? "Synchronizing..."
+              : !isOnline
+                ? `Offline (${pendingSyncCount} pending)`
               : pendingSyncCount > 0
-                ? `Synchronize (${pendingSyncCount})`
-                : "Synchronized"}
-          </button>
+                ? `Automatic sync queued (${pendingSyncCount})`
+                : "Automatically synchronized"}
+          </div>
 
           <button
             type="button"
