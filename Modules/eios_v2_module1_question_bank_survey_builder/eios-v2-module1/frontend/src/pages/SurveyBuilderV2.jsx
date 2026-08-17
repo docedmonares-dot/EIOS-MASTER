@@ -1,0 +1,11 @@
+import React,{useEffect,useState}from'react';
+import { QuestionBankAPI, SurveyBuilderAPI } from '../services/eiosV2Api';
+export default function SurveyBuilderV2(){
+  const [surveys,setSurveys]=useState([]),[questions,setQuestions]=useState([]),[current,setCurrent]=useState(null),[selected,setSelected]=useState([]);
+  async function load(){setSurveys(await SurveyBuilderAPI.list());setQuestions(await QuestionBankAPI.list({status:'Active'}))}
+  useEffect(()=>{load()},[]);
+  async function createSurvey(){const survey_name=prompt('Survey name?'); if(!survey_name)return; const created=await SurveyBuilderAPI.create({survey_code:`SURVEY_${Date.now()}`,survey_name,election_type:'Local Election',geographic_scope:'Configurable',description:''}); setCurrent(created); await load();}
+  async function addQuestion(q){ if(!current)return alert('Select or create a survey first.'); await SurveyBuilderAPI.addQuestion(current.survey_id,{question_id:q.question_id,page_number:1,sort_order:selected.length+1}); setSelected([...selected,q]);}
+  async function publish(){ if(!current)return alert('Select a survey first.'); const r=await SurveyBuilderAPI.publish(current.survey_id,{publish_notes:'Published from EIOS V2'}); alert(`Published ${r.survey_version.version_label}`);}
+  return <div className="page"><h1>Survey Builder</h1><button onClick={createSurvey}>Create Survey</button><button onClick={publish}>Publish Survey</button><div className="builder-layout"><section><h3>Surveys</h3>{surveys.map(s=><button key={s.survey_id} onClick={()=>setCurrent(s)}>{s.survey_name} — {s.status}</button>)}</section><section><h3>Question Bank</h3>{questions.map(q=><div className="question-card" key={q.question_id}><b>{q.question_code}</b><p>{q.question_text}</p><button onClick={()=>addQuestion(q)}>Add to Survey</button></div>)}</section><section><h3>Selected</h3>{selected.map((q,i)=><div className="question-card" key={q.question_id}><b>{i+1}. {q.question_code}</b><p>{q.question_text}</p><button>Move Up</button><button>Move Down</button><button>Remove</button><button>Logic</button></div>)}</section></div></div>
+}

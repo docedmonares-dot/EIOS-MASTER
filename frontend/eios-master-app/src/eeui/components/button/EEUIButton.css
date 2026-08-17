@@ -1,0 +1,196 @@
+/* =========================================================
+   EEUI COMPONENT — BUTTON
+========================================================= */
+
+.eeui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--eeui-space-2);
+
+  min-width: 0;
+
+  border: 1px solid transparent;
+  border-radius: var(--eeui-radius-md);
+
+  font-family: var(--eeui-font-sans);
+  font-weight: var(--eeui-font-weight-semibold);
+  line-height: 1;
+
+  cursor: pointer;
+  user-select: none;
+
+  transition:
+    background var(--eeui-fast) ease,
+    border-color var(--eeui-fast) ease,
+    color var(--eeui-fast) ease,
+    box-shadow var(--eeui-fast) ease,
+    transform var(--eeui-fast) ease;
+}
+
+.eeui-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.eeui-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.eeui-button:focus-visible {
+  outline: 3px solid rgba(30, 64, 175, 0.18);
+  outline-offset: 2px;
+}
+
+.eeui-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  transform: none;
+}
+
+/* =========================================================
+   SIZES
+========================================================= */
+
+.eeui-button--small {
+  min-height: 32px;
+  padding: 7px 11px;
+  font-size: var(--eeui-font-size-sm);
+}
+
+.eeui-button--medium {
+  min-height: 40px;
+  padding: 10px 15px;
+  font-size: var(--eeui-font-size-md);
+}
+
+.eeui-button--large {
+  min-height: 48px;
+  padding: 13px 20px;
+  font-size: var(--eeui-font-size-lg);
+}
+
+/* =========================================================
+   VARIANTS
+========================================================= */
+
+.eeui-button--primary {
+  background: var(--eeui-primary);
+  border-color: var(--eeui-primary);
+  color: var(--eeui-text-inverse);
+  box-shadow: var(--eeui-shadow-sm);
+}
+
+.eeui-button--primary:hover:not(:disabled) {
+  background: var(--eeui-primary-hover);
+  border-color: var(--eeui-primary-hover);
+  box-shadow: var(--eeui-shadow-md);
+}
+
+.eeui-button--secondary {
+  background: var(--eeui-surface);
+  border-color: var(--eeui-border-dark);
+  color: var(--eeui-text);
+}
+
+.eeui-button--secondary:hover:not(:disabled) {
+  background: var(--eeui-panel);
+  border-color: var(--eeui-primary);
+  color: var(--eeui-primary);
+}
+
+.eeui-button--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--eeui-text-muted);
+}
+
+.eeui-button--ghost:hover:not(:disabled) {
+  background: var(--eeui-primary-light);
+  color: var(--eeui-primary);
+}
+
+.eeui-button--success {
+  background: var(--eeui-success);
+  border-color: var(--eeui-success);
+  color: var(--eeui-text-inverse);
+}
+
+.eeui-button--warning {
+  background: var(--eeui-warning);
+  border-color: var(--eeui-warning);
+  color: var(--eeui-text-inverse);
+}
+
+.eeui-button--danger {
+  background: var(--eeui-danger);
+  border-color: var(--eeui-danger);
+  color: var(--eeui-text-inverse);
+}
+
+.eeui-button--info {
+  background: var(--eeui-info);
+  border-color: var(--eeui-info);
+  color: var(--eeui-text-inverse);
+}
+
+/* =========================================================
+   STRUCTURE
+========================================================= */
+
+.eeui-button--full-width {
+  width: 100%;
+}
+
+.eeui-button__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eeui-button__icon {
+  flex: 0 0 auto;
+}
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.eeui-button--loading {
+  position: relative;
+}
+
+.eeui-button__spinner {
+  width: 15px;
+  height: 15px;
+
+  flex: 0 0 auto;
+
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+
+  animation:
+    eeuiButtonSpin
+    700ms
+    linear
+    infinite;
+}
+
+@keyframes eeuiButtonSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+  .eeui-button--large {
+    min-height: 44px;
+    padding: 11px 16px;
+    font-size: var(--eeui-font-size-md);
+  }
+}

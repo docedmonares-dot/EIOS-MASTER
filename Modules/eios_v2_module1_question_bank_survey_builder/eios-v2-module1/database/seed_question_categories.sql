@@ -1,0 +1,18 @@
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('RESPONDENT_PROFILE', 'Respondent Profile', 1) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('CORE_METRICS', 'Core Metrics', 2) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('AWARENESS', 'Awareness', 3) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('SATISFACTION', 'Satisfaction', 4) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('TRUST', 'Trust', 5) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('PREFERENCE', 'Preference', 6) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('TENACITY', 'Tenacity', 7) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('ISSUES', 'Issues', 8) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('MEDIA_CONSUMPTION', 'Media Consumption', 9) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('POLITICAL_PARTY', 'Political Party', 10) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('CANDIDATE_ATTRIBUTES', 'Candidate Attributes', 11) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('VOTE_MIGRATION', 'Vote Migration', 12) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('SENTIMENTAL_VOTE', 'Sentimental Vote', 13) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('ISSUE_OWNERSHIP', 'Issue Ownership', 14) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('BENCHMARKING', 'Benchmarking', 15) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('QC', 'QC', 16) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('GIS', 'GIS', 17) ON CONFLICT (category_code) DO NOTHING;
+INSERT INTO question_categories(category_code, category_name, sort_order) VALUES ('CUSTOM', 'Custom', 18) ON CONFLICT (category_code) DO NOTHING;

@@ -1,0 +1,112 @@
+/* =========================================================
+   EEUI COMPONENT — BADGE
+========================================================= */
+
+.eeui-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--eeui-space-1);
+
+  width: fit-content;
+  max-width: 100%;
+
+  border: 1px solid transparent;
+  border-radius: 999px;
+
+  font-family: var(--eeui-font-sans);
+  font-weight: var(--eeui-font-weight-semibold);
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+/* =========================================================
+   SIZES
+========================================================= */
+
+.eeui-badge--small {
+  min-height: 20px;
+  padding: 3px 7px;
+  font-size: var(--eeui-font-size-xs);
+}
+
+.eeui-badge--medium {
+  min-height: 24px;
+  padding: 5px 9px;
+  font-size: var(--eeui-font-size-sm);
+}
+
+.eeui-badge--large {
+  min-height: 30px;
+  padding: 7px 12px;
+  font-size: var(--eeui-font-size-md);
+}
+
+/* =========================================================
+   VARIANTS
+========================================================= */
+
+.eeui-badge--neutral {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+.eeui-badge--primary {
+  background: var(--eeui-primary-light);
+  border-color: #bfdbfe;
+  color: var(--eeui-primary);
+}
+
+.eeui-badge--success {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: var(--eeui-success);
+}
+
+.eeui-badge--warning {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: var(--eeui-warning);
+}
+
+.eeui-badge--danger {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: var(--eeui-danger);
+}
+
+.eeui-badge--info {
+  background: #ecfeff;
+  border-color: #a5f3fc;
+  color: var(--eeui-info);
+}
+
+/* =========================================================
+   DOT
+========================================================= */
+
+.eeui-badge__dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* =========================================================
+   ICON AND LABEL
+========================================================= */
+
+.eeui-badge__icon {
+  flex: 0 0 auto;
+}
+
+.eeui-badge__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -1,0 +1,46 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Dependencies and generated builds
+**/node_modules/
+**/dist/
+**/build/
+**/.expo/
+**/.vite/
+**/coverage/
+
+# Logs and local caches
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+**/.cache/
+**/.tmp/
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.swp
+
+# Preserved repository history (local recovery only)
+/backups/backend-history.bundle
+/backups/backend-git-metadata/
+
+# Local database recovery artifacts and packaged archives
+*.backup
+*.dump
+*.zip
+
+# Temporary source and dependency snapshots
+*.before-audit.json
+*.backup.jsx
+*-backup.html

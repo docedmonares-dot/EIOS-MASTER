@@ -1,0 +1,70 @@
+const pool = require('../config/database');
+
+exports.getAllSections = async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT
+                ss.*,
+                s.survey_code,
+                s.survey_name
+            FROM survey_sections ss
+            LEFT JOIN surveys s
+                ON ss.survey_id = s.survey_id
+            ORDER BY ss.page_number, ss.sort_order
+        `);
+
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            error: err.message
+        });
+    }
+};
+exports.createSection = async (req, res) => {
+    try {
+        const {
+            survey_id,
+            section_code,
+            section_title,
+            section_description,
+            page_number,
+            sort_order
+        } = req.body;
+
+        const result = await pool.query(
+            `
+            INSERT INTO survey_sections
+            (
+                survey_id,
+                section_code,
+                section_title,
+                section_description,
+                page_number,
+                sort_order
+            )
+            VALUES
+            ($1,$2,$3,$4,$5,$6)
+            RETURNING *
+            `,
+            [
+                survey_id,
+                section_code,
+                section_title,
+                section_description,
+                page_number,
+                sort_order
+            ]
+        );
+
+        res.json({
+            success: true,
+            data: result.rows[0]
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            error: err.message
+        });
+    }
+};

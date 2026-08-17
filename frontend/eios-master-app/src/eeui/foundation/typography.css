@@ -1,0 +1,153 @@
+/* =========================================================
+   EEUI FOUNDATION — TYPOGRAPHY
+========================================================= */
+
+:root {
+  --eeui-font-sans:
+    Inter,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  --eeui-font-mono:
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    Menlo,
+    monospace;
+
+  --eeui-font-size-xs: 11px;
+  --eeui-font-size-sm: 12px;
+  --eeui-font-size-md: 14px;
+  --eeui-font-size-lg: 16px;
+  --eeui-font-size-xl: 18px;
+  --eeui-font-size-2xl: 22px;
+  --eeui-font-size-3xl: 28px;
+  --eeui-font-size-4xl: 36px;
+
+  --eeui-line-height-tight: 1.2;
+  --eeui-line-height-normal: 1.5;
+  --eeui-line-height-relaxed: 1.7;
+
+  --eeui-font-weight-regular: 400;
+  --eeui-font-weight-medium: 500;
+  --eeui-font-weight-semibold: 600;
+  --eeui-font-weight-bold: 700;
+  --eeui-font-weight-extrabold: 800;
+}
+
+body {
+  font-family: var(--eeui-font-sans);
+}
+
+.eeui-text-xs {
+  font-size: var(--eeui-font-size-xs);
+}
+
+.eeui-text-sm {
+  font-size: var(--eeui-font-size-sm);
+}
+
+.eeui-text-md {
+  font-size: var(--eeui-font-size-md);
+}
+
+.eeui-text-lg {
+  font-size: var(--eeui-font-size-lg);
+}
+
+.eeui-text-xl {
+  font-size: var(--eeui-font-size-xl);
+}
+
+.eeui-page-overline {
+  display: block;
+  color: var(--eeui-primary);
+  font-size: var(--eeui-font-size-xs);
+  font-weight: var(--eeui-font-weight-extrabold);
+  letter-spacing: 0.12em;
+  line-height: var(--eeui-line-height-tight);
+  text-transform: uppercase;
+}
+
+.eeui-page-title {
+  color: var(--eeui-text);
+  font-size: var(--eeui-font-size-4xl);
+  font-weight: var(--eeui-font-weight-extrabold);
+  line-height: var(--eeui-line-height-tight);
+}
+
+.eeui-page-subtitle {
+  color: var(--eeui-text-muted);
+  font-size: var(--eeui-font-size-md);
+  line-height: var(--eeui-line-height-relaxed);
+}
+
+.eeui-section-title {
+  color: var(--eeui-text);
+  font-size: var(--eeui-font-size-2xl);
+  font-weight: var(--eeui-font-weight-bold);
+  line-height: var(--eeui-line-height-tight);
+}
+
+.eeui-panel-title {
+  color: var(--eeui-text);
+  font-size: var(--eeui-font-size-lg);
+  font-weight: var(--eeui-font-weight-bold);
+  line-height: var(--eeui-line-height-tight);
+}
+
+.eeui-label {
+  color: var(--eeui-text);
+  font-size: var(--eeui-font-size-sm);
+  font-weight: var(--eeui-font-weight-semibold);
+  line-height: var(--eeui-line-height-normal);
+}
+
+.eeui-caption {
+  color: var(--eeui-text-muted);
+  font-size: var(--eeui-font-size-xs);
+  line-height: var(--eeui-line-height-normal);
+}
+
+.eeui-muted {
+  color: var(--eeui-text-muted);
+}
+
+.eeui-code {
+  font-family: var(--eeui-font-mono);
+  font-size: var(--eeui-font-size-sm);
+}
+
+.eeui-uppercase {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.eeui-font-medium {
+  font-weight: var(--eeui-font-weight-medium);
+}
+
+.eeui-font-semibold {
+  font-weight: var(--eeui-font-weight-semibold);
+}
+
+.eeui-font-bold {
+  font-weight: var(--eeui-font-weight-bold);
+}
+
+.eeui-font-extrabold {
+  font-weight: var(--eeui-font-weight-extrabold);
+}
+
+@media (max-width: 768px) {
+  .eeui-page-title {
+    font-size: var(--eeui-font-size-3xl);
+  }
+
+  .eeui-section-title {
+    font-size: var(--eeui-font-size-xl);
+  }
+}

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supervisor Live Map Dashboard</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+
+    <style>
+        body { margin:0; font-family:Arial; }
+        #header {
+            background:#111827;
+            color:white;
+            padding:12px;
+        }
+        #map {
+            height: calc(100vh - 50px);
+        }
+        .box {
+            position:absolute;
+            top:60px;
+            left:10px;
+            background:white;
+            padding:10px;
+            z-index:999;
+            border-radius:8px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="header">📍 LIVE SUPERVISOR MAP</div>
+
+<div class="box">
+    🟢 Active<br>
+    🔵 Moving<br>
+    🔴 Offline
+</div>
+
+<div id="map"></div>
+
+<div id="statusPanel" style="
+    position:absolute;
+    top:70px;
+    right:10px;
+    background:white;
+    padding:10px;
+    width:250px;
+    max-height:400px;
+    overflow:auto;
+    z-index:999;
+    border-radius:8px;
+    font-size:12px;
+"></div>
+
+<script>
+
+const socket = io();
+const map = L.map('map').setView([14.5995,120.9842], 12);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:'&copy; OpenStreetMap'
+}).addTo(map);
+
+let markers = {};
+let heatPoints = [];
+let heatLayer = null;
+let lines = {};
+let trails = {};
+
+socket.on("supervisor-update", (data) => {
+
+    Object.keys(data).forEach(id => {
+
+        const u = data[id];
+        if (!u.lat || !u.lng) return;
+
+        const pos = [u.lat, u.lng];
+
+        heatPoints.push([u.lat, u.lng, 1]);
+
+        if (heatLayer) {
+            map.removeLayer(heatLayer);
+        }
+
+        heatLayer = L.heatLayer(heatPoints, {
+            radius: 25,
+            blur: 18,
+            maxZoom: 17
+        }).addTo(map);
+
+        if (!markers[id]) {
+            markers[id] = L.marker(pos).addTo(map)
+                .bindPopup(id);
+        } else {
+            markers[id].setLatLng(pos);
+        }
+
+        if (!trails[id]) trails[id] = [];
+        trails[id].push(pos);
+
+        if (trails[id].length > 20) trails[id].shift();
+
+        if (lines[id]) map.removeLayer(lines[id]);
+
+        lines[id] = L.polyline(trails[id], {
+            color: u.status === "offline" ? "red" : "blue",
+            weight: 3
+        }).addTo(map);
+    });
+
+    let html = "";
+
+Object.keys(data).forEach(id => {
+
+    const u = data[id];
+
+    let color =
+        u.status === "offline" ? "red" :
+        u.status === "active" ? "green" : "blue";
+
+    html += `
+        <div style="margin-bottom:10px;">
+            <b>${id}</b><br>
+            <span style="color:${color}">${u.status}</span><br>
+            ${u.lat || "-"}, ${u.lng || "-"}<br>
+            <small>${new Date(u.lastSeen).toLocaleTimeString()}</small>
+        </div>
+    `;
+});
+
+document.getElementById("statusPanel").innerHTML = html;
+});
+
+setInterval(() => {
+
+    // prevent memory overload
+    if (heatPoints.length > 2000) {
+        heatPoints = heatPoints.slice(-1000);
+    }
+
+}, 5000);
+
+</script>
+
+</body>
+</html>

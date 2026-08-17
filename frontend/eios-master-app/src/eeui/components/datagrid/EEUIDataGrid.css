@@ -1,0 +1,239 @@
+/* =========================================================
+   EEUI COMPONENT — ENTERPRISE DATA GRID
+========================================================= */
+
+.eeui-datagrid {
+  width: 100%;
+  min-width: 0;
+
+  background: var(--eeui-surface);
+  border: 1px solid var(--eeui-border);
+  border-radius: var(--eeui-radius-md);
+
+  overflow: hidden;
+}
+
+.eeui-datagrid__viewport {
+  width: 100%;
+  min-width: 760px;
+
+  overflow-x: auto;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.eeui-datagrid__header {
+  display: flex;
+  align-items: stretch;
+
+  position: sticky;
+  top: 0;
+  z-index: 2;
+
+  min-width: max-content;
+
+  background: var(--eeui-panel);
+  border-bottom: 1px solid var(--eeui-border);
+}
+
+.eeui-datagrid__header-cell {
+  color: var(--eeui-text-muted);
+  font-size: var(--eeui-font-size-xs);
+  font-weight: var(--eeui-font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.eeui-datagrid__sort-button {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--eeui-space-2);
+
+  padding: 0;
+
+  background: transparent;
+  color: inherit;
+
+  font: inherit;
+  text-align: left;
+}
+
+.eeui-datagrid__sort-button:hover {
+  color: var(--eeui-primary);
+}
+
+/* =========================================================
+   BODY
+========================================================= */
+
+.eeui-datagrid__body {
+  min-width: max-content;
+}
+
+.eeui-datagrid__row {
+  display: flex;
+  align-items: stretch;
+
+  min-width: max-content;
+
+  background: var(--eeui-surface);
+  border-bottom: 1px solid var(--eeui-border);
+
+  transition:
+    background var(--eeui-fast) ease,
+    box-shadow var(--eeui-fast) ease;
+}
+
+.eeui-datagrid__row:last-child {
+  border-bottom: 0;
+}
+
+.eeui-datagrid__row:hover {
+  background: var(--eeui-panel);
+}
+
+.eeui-datagrid__row[tabindex] {
+  cursor: pointer;
+}
+
+.eeui-datagrid__row--selected {
+  background: var(--eeui-primary-light);
+  box-shadow:
+    inset 3px 0 0 var(--eeui-primary);
+}
+
+/* =========================================================
+   CELLS
+========================================================= */
+
+.eeui-datagrid__cell {
+  display: flex;
+  min-width: 140px;
+  flex: 1 1 0;
+  align-items: center;
+
+  padding:
+    var(--eeui-space-3)
+    var(--eeui-space-4);
+
+  color: var(--eeui-text);
+  font-size: var(--eeui-font-size-sm);
+  line-height: var(--eeui-line-height-normal);
+}
+
+.eeui-datagrid__cell--left {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.eeui-datagrid__cell--center {
+  justify-content: center;
+  text-align: center;
+}
+
+.eeui-datagrid__cell--right {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+/* =========================================================
+   SELECTION
+========================================================= */
+
+.eeui-datagrid__selection-cell {
+  display: grid;
+  width: 48px;
+  min-width: 48px;
+  place-items: center;
+
+  border-right: 1px solid var(--eeui-border);
+}
+
+.eeui-datagrid__selection-cell input {
+  width: 16px;
+  height: 16px;
+
+  accent-color: var(--eeui-primary);
+}
+
+/* =========================================================
+   STATES
+========================================================= */
+
+.eeui-datagrid__state {
+  display: flex;
+  min-height: 220px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--eeui-space-3);
+
+  padding: var(--eeui-space-6);
+
+  color: var(--eeui-text-muted);
+  text-align: center;
+}
+
+.eeui-datagrid__state strong {
+  color: var(--eeui-text);
+  font-size: var(--eeui-font-size-md);
+  font-weight: var(--eeui-font-weight-semibold);
+}
+
+.eeui-datagrid__state span {
+  max-width: 420px;
+
+  font-size: var(--eeui-font-size-sm);
+  line-height: var(--eeui-line-height-relaxed);
+}
+
+.eeui-datagrid__spinner {
+  animation:
+    eeuiDataGridSpin
+    800ms
+    linear
+    infinite;
+}
+
+@keyframes eeuiDataGridSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
+
+.eeui-datagrid__row:focus-visible {
+  outline: 2px solid var(--eeui-primary);
+  outline-offset: -2px;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+  .eeui-datagrid__cell {
+    min-width: 120px;
+
+    padding:
+      var(--eeui-space-3)
+      var(--eeui-space-3);
+  }
+}
+
+@media (max-width: 700px) {
+  .eeui-datagrid {
+    border-radius: var(--eeui-radius-sm);
+  }
+
+  .eeui-datagrid__viewport {
+    min-width: 680px;
+  }
+}

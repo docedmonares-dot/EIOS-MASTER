@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EIOS Command Dashboard</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+
+  <style>
+    :root {
+      --navy: #0f172a;
+      --panel: #ffffff;
+      --bg: #e9eef5;
+      --muted: #64748b;
+      --line: #dbe3ee;
+      --green: #16a34a;
+      --amber: #d97706;
+      --red: #dc2626;
+      --blue: #2563eb;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color: #172033; }
+
+    .topbar {
+      min-height: 64px;
+      padding: 12px 18px;
+      background: var(--navy);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .title { font-size: 20px; font-weight: 700; }
+    .subtitle { font-size: 12px; color: #cbd5e1; margin-top: 3px; }
+    .status-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .badge { padding: 7px 10px; border-radius: 999px; font-size: 12px; background: #334155; }
+    .badge.live { background: #14532d; }
+    .badge.offline { background: #7f1d1d; }
+
+    .loginbar {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      padding: 10px 18px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    input, button {
+      min-height: 38px;
+      border-radius: 7px;
+      border: 1px solid #cbd5e1;
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+    button { border: 0; background: var(--blue); color: #fff; cursor: pointer; font-weight: 700; }
+    button.secondary { background: #475569; }
+    #loginStatus { font-size: 13px; color: var(--muted); }
+
+    .metrics {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .metric-label { font-size: 12px; color: var(--muted); }
+    .metric-value { font-size: 26px; font-weight: 700; margin-top: 4px; }
+
+    .workspace {
+      padding: 0 12px 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      gap: 10px;
+    }
+    .map-card, .side-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .card-head {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+    .map-tools { display: flex; gap: 6px; flex-wrap: wrap; }
+    .map-tools button { min-height: 30px; padding: 5px 9px; font-size: 12px; }
+    #map { height: 620px; width: 100%; }
+
+    .side-column { display: grid; gap: 10px; align-content: start; }
+    .side-body { padding: 10px; max-height: 300px; overflow: auto; }
+    .enumerator-item, .barangay-item, .alert-item {
+      border-bottom: 1px solid #edf1f5;
+      padding: 9px 4px;
+      font-size: 13px;
+    }
+    .enumerator-item:last-child, .barangay-item:last-child, .alert-item:last-child { border-bottom: 0; }
+    .item-title { font-weight: 700; display: flex; justify-content: space-between; gap: 8px; }
+    .item-meta { color: var(--muted); margin-top: 4px; font-size: 12px; line-height: 1.45; }
+    .dot { width: 9px; height: 9px; display: inline-block; border-radius: 50%; margin-right: 5px; }
+    .dot.active, .dot.moving { background: var(--green); }
+    .dot.idle { background: var(--amber); }
+    .dot.offline { background: var(--red); }
+    .empty { color: var(--muted); font-size: 13px; padding: 8px 2px; }
+
+    .leaflet-popup-content { min-width: 180px; }
+
+    @media (max-width: 1050px) {
+      .metrics { grid-template-columns: repeat(3, 1fr); }
+      .workspace { grid-template-columns: 1fr; }
+      #map { height: 520px; }
+      .side-column { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 680px) {
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      .side-column { grid-template-columns: 1fr; }
+      #map { height: 440px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="title">EIOS COMMAND DASHBOARD</div>
+      <div class="subtitle">Live Field Operations • GPS Monitoring • Barangay Intelligence</div>
+    </div>
+    <div class="status-row">
+      <span id="socketStatus" class="badge offline">🔴 Connecting</span>
+      <span id="lastUpdate" class="badge">Last update: —</span>
+    </div>
+  </header>
+
+  <section class="loginbar" id="loginBar">
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <button id="loginButton" type="button">Login</button>
+    <button id="logoutButton" type="button" class="secondary">Logout</button>
+    <span id="loginStatus">Login is required for protected dashboard data.</span>
+  </section>
+
+  <section class="metrics">
+    <div class="metric"><div class="metric-label">Tracked Enumerators</div><div id="totalCount" class="metric-value">0</div></div>
+    <div class="metric"><div class="metric-label">Active / Moving</div><div id="activeCount" class="metric-value">0</div></div>
+    <div class="metric"><div class="metric-label">Idle</div><div id="idleCount" class="metric-value">0</div></div>
+    <div class="metric"><div class="metric-label">Offline</div><div id="offlineCount" class="metric-value">0</div></div>
+    <div class="metric"><div class="metric-label">Barangays Covered</div><div id="barangayCount" class="metric-value">0</div></div>
+  </section>
+
+  <main class="workspace">
+    <section class="map-card">
+      <div class="card-head">
+        <span>Live GPS Operations Map</span>
+        <div class="map-tools">
+          <button id="fitButton" type="button">Fit All</button>
+          <button id="heatButton" type="button" class="secondary">Hide Heatmap</button>
+          <button id="trailButton" type="button" class="secondary">Hide Trails</button>
+        </div>
+      </div>
+      <div id="map"></div>
+    </section>
+
+    <aside class="side-column">
+      <section class="side-card">
+        <div class="card-head">Enumerator Status</div>
+        <div id="enumeratorList" class="side-body"><div class="empty">Waiting for GPS updates…</div></div>
+      </section>
+
+      <section class="side-card">
+        <div class="card-head">Barangay Intelligence</div>
+        <div id="barangayList" class="side-body"><div class="empty">No barangay data yet.</div></div>
+      </section>
+
+      <section class="side-card">
+        <div class="card-head">Command Alerts</div>
+        <div id="alertList" class="side-body"><div class="empty">No active alerts.</div></div>
+      </section>
+    </aside>
+  </main>
+
+<script>
+  let map = null;
+  let socket = null;
+  let heatLayer = null;
+  let heatVisible = true;
+  let trailsVisible = true;
+  let reconnectAttempts = 0;
+
+  const enumerators = {};
+  const markers = {};
+  const trails = {};
+  const trailLines = {};
+  let heatPoints = [];
+  let barangayStats = {};
+
+  function safeNumber(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : null;
+  }
+
+  function formatTime(timestamp) {
+    if (!timestamp) return "No timestamp";
+    const date = new Date(timestamp);
+    return Number.isNaN(date.getTime()) ? "No timestamp" : date.toLocaleString();
+  }
+
+  function initMap() {
+    if (map || !window.L) return;
+    map = L.map("map").setView([12.8797, 121.7740], 6);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(map);
+
+    heatLayer = L.heatLayer([], { radius: 24, blur: 16, maxZoom: 17, minOpacity: 0.35 }).addTo(map);
+  }
+
+  function markerColor(status) {
+    if (status === "offline") return "#dc2626";
+    if (status === "idle") return "#d97706";
+    return "#16a34a";
+  }
+
+  function makeIcon(status) {
+    const color = markerColor(status);
+    return L.divIcon({
+      className: "",
+      html: `<div style="width:18px;height:18px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 1px 6px rgba(0,0,0,.5)"></div>`,
+      iconSize: [18, 18],
+      iconAnchor: [9, 9]
+    });
+  }
+
+  function updateEnumeratorPosition(data) {
+    if (!map || !data) return;
+    const id = String(data.user_id ?? data.id ?? "").trim();
+    const lat = safeNumber(data.latitude ?? data.lat);
+    const lng = safeNumber(data.longitude ?? data.lng);
+    if (!id || lat === null || lng === null) return;
+
+    const previous = enumerators[id] || {};
+    const current = {
+      ...previous,
+      ...data,
+      user_id: id,
+      latitude: lat,
+      longitude: lng,
+      lat,
+      lng,
+      status: data.status || previous.status || "moving",
+      barangay: data.barangay || previous.barangay || "UNKNOWN",
+      lastSeen: data.lastSeen || data.time || Date.now()
+    };
+    enumerators[id] = current;
+
+    const latlng = [lat, lng];
+    if (!markers[id]) {
+      markers[id] = L.marker(latlng, { icon: makeIcon(current.status) }).addTo(map);
+    } else {
+      markers[id].setLatLng(latlng);
+      markers[id].setIcon(makeIcon(current.status));
+    }
+
+    markers[id].bindPopup(`
+      <strong>${id}</strong><br>
+      Status: ${current.status}<br>
+      Barangay: ${current.barangay}<br>
+      Last seen: ${formatTime(current.lastSeen)}<br>
+      GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}
+    `);
+
+    if (!trails[id]) trails[id] = [];
+    const lastPoint = trails[id][trails[id].length - 1];
+    if (!lastPoint || lastPoint[0] !== lat || lastPoint[1] !== lng) trails[id].push(latlng);
+    if (trails[id].length > 100) trails[id].shift();
+
+    if (!trailLines[id]) {
+      trailLines[id] = L.polyline(trails[id], { weight: 3, opacity: 0.65 }).addTo(map);
+    } else {
+      trailLines[id].setLatLngs(trails[id]);
+    }
+    if (!trailsVisible && map.hasLayer(trailLines[id])) map.removeLayer(trailLines[id]);
+
+    heatPoints.push([lat, lng, 0.8]);
+    if (heatPoints.length > 1200) heatPoints = heatPoints.slice(-1200);
+    refreshHeatmap();
+    refreshPanels();
+  }
+
+  function applySupervisorSnapshot(snapshot) {
+    Object.entries(snapshot || {}).forEach(([id, record]) => {
+      if (!record) return;
+      updateEnumeratorPosition({ user_id: id, ...record });
+    });
+    refreshPanels();
+  }
+
+  function refreshHeatmap() {
+    if (heatLayer && heatVisible) heatLayer.setLatLngs(heatPoints);
+  }
+
+  function refreshPanels() {
+    const values = Object.values(enumerators);
+    const active = values.filter(item => item.status === "active" || item.status === "moving").length;
+    const idle = values.filter(item => item.status === "idle").length;
+    const offline = values.filter(item => item.status === "offline").length;
+
+    document.getElementById("totalCount").textContent = values.length;
+    document.getElementById("activeCount").textContent = active;
+    document.getElementById("idleCount").textContent = idle;
+    document.getElementById("offlineCount").textContent = offline;
+    document.getElementById("barangayCount").textContent = Object.keys(barangayStats || {}).length;
+    document.getElementById("lastUpdate").textContent = "Last update: " + new Date().toLocaleTimeString();
+
+    const list = document.getElementById("enumeratorList");
+    if (!values.length) {
+      list.innerHTML = '<div class="empty">Waiting for GPS updates…</div>';
+    } else {
+      list.innerHTML = values
+        .sort((a, b) => Number(b.lastSeen || 0) - Number(a.lastSeen || 0))
+        .map(item => `
+          <div class="enumerator-item" data-user="${item.user_id}">
+            <div class="item-title">
+              <span><span class="dot ${item.status}"></span>${item.user_id}</span>
+              <span>${item.status}</span>
+            </div>
+            <div class="item-meta">${item.barangay || "UNKNOWN"}<br>${formatTime(item.lastSeen)}</div>
+          </div>
+        `).join("");
+
+      list.querySelectorAll("[data-user]").forEach(element => {
+        element.addEventListener("click", () => {
+          const id = element.dataset.user;
+          if (markers[id]) {
+            map.setView(markers[id].getLatLng(), 17);
+            markers[id].openPopup();
+          }
+        });
+      });
+    }
+
+    const barangayList = document.getElementById("barangayList");
+    const barangays = Object.entries(barangayStats || {});
+    barangayList.innerHTML = barangays.length ? barangays.map(([name, value]) => `
+      <div class="barangay-item">
+        <div class="item-title"><span>${name}</span><span>${value.active || 0} active</span></div>
+        <div class="item-meta">Total tracked: ${value.total || 0} • Offline: ${value.offline || 0}</div>
+      </div>
+    `).join("") : '<div class="empty">No barangay data yet.</div>';
+  }
+
+  function renderAlerts(payload) {
+    const alerts = Array.isArray(payload?.alerts) ? payload.alerts : [];
+    const box = document.getElementById("alertList");
+    box.innerHTML = alerts.length ? alerts.map(alert => `
+      <div class="alert-item">
+        <div class="item-title"><span>${alert.type || "ALERT"}</span><span>${alert.user || ""}</span></div>
+        <div class="item-meta">${alert.message || "Attention required"}</div>
+      </div>
+    `).join("") : '<div class="empty">No active alerts.</div>';
+  }
+
+  function initSocket() {
+    if (!window.io || socket) return;
+    socket = io({
+      path: "/socket.io",
+      transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000
+    });
+
+    socket.on("connect", () => {
+      reconnectAttempts = 0;
+      const status = document.getElementById("socketStatus");
+      status.textContent = "🟢 LIVE";
+      status.className = "badge live";
+    });
+
+    socket.on("disconnect", () => {
+      const status = document.getElementById("socketStatus");
+      status.textContent = "🔴 OFFLINE";
+      status.className = "badge offline";
+    });
+
+    socket.on("connect_error", error => {
+      const status = document.getElementById("socketStatus");
+      status.textContent = "🔴 " + error.message;
+      status.className = "badge offline";
+    });
+
+    if (socket.io) {
+      socket.io.on("reconnect_attempt", () => {
+        reconnectAttempts += 1;
+        document.getElementById("socketStatus").textContent = `🟠 Reconnecting (${reconnectAttempts})`;
+      });
+    }
+
+    socket.on("gps-update", updateEnumeratorPosition);
+    socket.on("supervisor-update", applySupervisorSnapshot);
+    socket.on("barangay-intelligence", data => {
+      barangayStats = data || {};
+      refreshPanels();
+    });
+    socket.on("heatmap-intelligence", data => {
+      heatPoints = [];
+      Object.values(data || {}).forEach(group => {
+        (group?.points || []).forEach(point => heatPoints.push(point));
+      });
+      if (heatPoints.length > 1200) heatPoints = heatPoints.slice(-1200);
+      refreshHeatmap();
+    });
+    socket.on("supervisor-ai-update", renderAlerts);
+  }
+
+  async function login() {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const status = document.getElementById("loginStatus");
+    if (!email || !password) {
+      status.textContent = "Please enter email and password.";
+      return;
+    }
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.token) throw new Error(data.message || "Login failed");
+      localStorage.setItem("token", data.token);
+      status.textContent = "✅ Login successful";
+    } catch (error) {
+      status.textContent = "❌ " + error.message;
+    }
+  }
+
+  function fitAllMarkers() {
+    const markerValues = Object.values(markers);
+    if (!markerValues.length) return;
+    const group = L.featureGroup(markerValues);
+    map.fitBounds(group.getBounds().pad(0.2));
+  }
+
+  document.getElementById("loginButton").addEventListener("click", login);
+  document.getElementById("logoutButton").addEventListener("click", () => {
+    localStorage.removeItem("token");
+    document.getElementById("loginStatus").textContent = "Logged out.";
+  });
+  document.getElementById("fitButton").addEventListener("click", fitAllMarkers);
+  document.getElementById("heatButton").addEventListener("click", event => {
+    heatVisible = !heatVisible;
+    if (heatVisible) {
+      heatLayer.addTo(map);
+      refreshHeatmap();
+      event.target.textContent = "Hide Heatmap";
+    } else {
+      map.removeLayer(heatLayer);
+      event.target.textContent = "Show Heatmap";
+    }
+  });
+  document.getElementById("trailButton").addEventListener("click", event => {
+    trailsVisible = !trailsVisible;
+    Object.values(trailLines).forEach(line => {
+      if (trailsVisible && !map.hasLayer(line)) line.addTo(map);
+      if (!trailsVisible && map.hasLayer(line)) map.removeLayer(line);
+    });
+    event.target.textContent = trailsVisible ? "Hide Trails" : "Show Trails";
+  });
+
+  initMap();
+  initSocket();
+  refreshPanels();
+  if (localStorage.getItem("token")) document.getElementById("loginStatus").textContent = "✅ Existing login token found";
+</script>
+</body>
+</html>

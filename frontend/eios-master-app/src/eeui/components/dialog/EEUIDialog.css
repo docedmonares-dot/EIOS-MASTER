@@ -1,0 +1,235 @@
+/* =========================================================
+   EEUI COMPONENT — DIALOG
+========================================================= */
+
+.eeui-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--eeui-z-modal);
+
+  display: grid;
+  place-items: center;
+
+  padding: var(--eeui-space-5);
+
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(2px);
+
+  animation:
+    eeuiDialogBackdropIn
+    var(--eeui-fast)
+    ease;
+}
+
+.eeui-dialog {
+  display: flex;
+  width: 100%;
+  max-height: min(88vh, 900px);
+  flex-direction: column;
+
+  background: var(--eeui-surface);
+  border: 1px solid var(--eeui-border);
+  border-radius: var(--eeui-radius-lg);
+
+  box-shadow: var(--eeui-shadow-lg);
+  overflow: hidden;
+
+  animation:
+    eeuiDialogIn
+    var(--eeui-normal)
+    ease;
+}
+
+/* =========================================================
+   SIZES
+========================================================= */
+
+.eeui-dialog--small {
+  max-width: 440px;
+}
+
+.eeui-dialog--medium {
+  max-width: 680px;
+}
+
+.eeui-dialog--large {
+  max-width: 920px;
+}
+
+.eeui-dialog--xlarge {
+  max-width: 1180px;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.eeui-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--eeui-space-4);
+
+  flex: 0 0 auto;
+
+  padding:
+    var(--eeui-space-5)
+    var(--eeui-space-6);
+
+  background: var(--eeui-panel);
+  border-bottom: 1px solid var(--eeui-border);
+}
+
+.eeui-dialog__identity {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: var(--eeui-space-3);
+}
+
+.eeui-dialog__icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+
+  border-radius: var(--eeui-radius-md);
+
+  background: var(--eeui-primary-light);
+  color: var(--eeui-primary);
+}
+
+.eeui-dialog__title {
+  color: var(--eeui-text);
+  font-size: var(--eeui-font-size-xl);
+  font-weight: var(--eeui-font-weight-bold);
+  line-height: var(--eeui-line-height-tight);
+}
+
+.eeui-dialog__subtitle {
+  margin-top: var(--eeui-space-1);
+
+  color: var(--eeui-text-muted);
+  font-size: var(--eeui-font-size-sm);
+  line-height: var(--eeui-line-height-normal);
+}
+
+.eeui-dialog__close {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+
+  border: 1px solid transparent;
+  border-radius: var(--eeui-radius-sm);
+
+  background: transparent;
+  color: var(--eeui-text-muted);
+
+  transition:
+    background var(--eeui-fast) ease,
+    border-color var(--eeui-fast) ease,
+    color var(--eeui-fast) ease;
+}
+
+.eeui-dialog__close:hover {
+  background: var(--eeui-surface);
+  border-color: var(--eeui-border);
+  color: var(--eeui-text);
+}
+
+/* =========================================================
+   BODY
+========================================================= */
+
+.eeui-dialog__body {
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+
+  padding: var(--eeui-space-6);
+
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.eeui-dialog__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--eeui-space-3);
+
+  flex: 0 0 auto;
+
+  padding:
+    var(--eeui-space-4)
+    var(--eeui-space-6);
+
+  background: var(--eeui-panel);
+  border-top: 1px solid var(--eeui-border);
+}
+
+/* =========================================================
+   ANIMATION
+========================================================= */
+
+@keyframes eeuiDialogBackdropIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes eeuiDialogIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 700px) {
+  .eeui-dialog-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .eeui-dialog {
+    max-width: none;
+    max-height: 92vh;
+
+    border-radius:
+      var(--eeui-radius-lg)
+      var(--eeui-radius-lg)
+      0
+      0;
+  }
+
+  .eeui-dialog__header,
+  .eeui-dialog__body,
+  .eeui-dialog__footer {
+    padding-left: var(--eeui-space-4);
+    padding-right: var(--eeui-space-4);
+  }
+
+  .eeui-dialog__footer {
+    flex-wrap: wrap;
+  }
+}

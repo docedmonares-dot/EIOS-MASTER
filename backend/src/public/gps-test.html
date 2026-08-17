@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    />
+
+    <title>EIOS GPS Test Sender</title>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 40px;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #0f172a;
+        }
+
+        .card {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 24px;
+            border: 1px solid #dbe3ee;
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 24px;
+        }
+
+        p {
+            line-height: 1.5;
+            color: #475569;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px 16px;
+            border: 0;
+            border-radius: 10px;
+            background: #2563eb;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        #status {
+            margin-top: 18px;
+            padding: 12px;
+            border-radius: 10px;
+            background: #f8fafc;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>EIOS GPS Test Sender</h1>
+
+        <p>
+            This page sends your current browser location to the EIOS backend
+            using the existing <strong>gps-update</strong> Socket.IO event.
+        </p>
+
+        <button id="sendButton">
+            Send My Current GPS
+        </button>
+
+        <div id="status">
+            Ready.
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+
+        const sendButton = document.getElementById("sendButton");
+        const statusBox = document.getElementById("status");
+
+        socket.on("connect", () => {
+            statusBox.textContent =
+                "Connected to EIOS backend. Ready to send GPS.";
+        });
+
+        socket.on("disconnect", () => {
+            statusBox.textContent =
+                "Disconnected from EIOS backend.";
+        });
+
+        sendButton.addEventListener("click", () => {
+            if (!navigator.geolocation) {
+                statusBox.textContent =
+                    "Geolocation is not supported by this browser.";
+                return;
+            }
+
+            sendButton.disabled = true;
+            statusBox.textContent = "Getting current location...";
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const payload = {
+                        user_id: "TEST-ENUMERATOR-001",
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        barangay: "TEST LOCATION"
+                    };
+
+                    socket.emit("gps-update", payload);
+
+                    statusBox.innerHTML = `
+                        GPS sent successfully.<br>
+                        Latitude: ${payload.latitude}<br>
+                        Longitude: ${payload.longitude}
+                    `;
+
+                    sendButton.disabled = false;
+                },
+                (error) => {
+                    statusBox.textContent =
+                        "GPS error: " + error.message;
+
+                    sendButton.disabled = false;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                }
+            );
+        });
+    </script>
+</body>
+</html>

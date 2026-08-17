@@ -1,0 +1,222 @@
+/* =========================================================
+   EEUI COMPONENT — RIBBON
+========================================================= */
+
+.eeui-ribbon {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+
+  background: var(--eeui-surface);
+  color: var(--eeui-text);
+}
+
+/* =========================================================
+   TOP BAR
+========================================================= */
+
+.eeui-ribbon__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--eeui-space-4);
+
+  min-width: 0;
+
+  padding:
+    0
+    var(--eeui-space-4);
+
+  border-bottom: 1px solid var(--eeui-border);
+}
+
+/* =========================================================
+   TABS
+========================================================= */
+
+.eeui-ribbon__tabs {
+  display: flex;
+  min-width: 0;
+  align-items: stretch;
+  gap: var(--eeui-space-1);
+
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.eeui-ribbon__tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--eeui-space-2);
+
+  min-height: 42px;
+  padding:
+    0
+    var(--eeui-space-3);
+
+  border-bottom: 2px solid transparent;
+
+  background: transparent;
+  color: var(--eeui-text-muted);
+
+  font-size: var(--eeui-font-size-sm);
+  font-weight: var(--eeui-font-weight-semibold);
+
+  white-space: nowrap;
+
+  transition:
+    background var(--eeui-fast) ease,
+    border-color var(--eeui-fast) ease,
+    color var(--eeui-fast) ease;
+}
+
+.eeui-ribbon__tab:hover {
+  background: var(--eeui-panel);
+  color: var(--eeui-text);
+}
+
+.eeui-ribbon__tab--active {
+  border-bottom-color: var(--eeui-primary);
+  color: var(--eeui-primary);
+}
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.eeui-ribbon__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--eeui-space-2);
+}
+
+/* =========================================================
+   COMMAND AREA
+========================================================= */
+
+.eeui-ribbon__content {
+  display: flex;
+  min-width: 0;
+  min-height: 74px;
+  align-items: stretch;
+  gap: var(--eeui-space-3);
+
+  padding:
+    var(--eeui-space-3)
+    var(--eeui-space-4);
+
+  overflow-x: auto;
+
+  background: var(--eeui-panel);
+  border-bottom: 1px solid var(--eeui-border);
+}
+
+.eeui-ribbon__group {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: stretch;
+  gap: var(--eeui-space-2);
+
+  padding-right: var(--eeui-space-3);
+
+  border-right: 1px solid var(--eeui-border);
+}
+
+.eeui-ribbon__group:last-child {
+  border-right: 0;
+}
+
+.eeui-ribbon__group-label {
+  align-self: flex-end;
+
+  color: var(--eeui-text-light);
+  font-size: var(--eeui-font-size-xs);
+  font-weight: var(--eeui-font-weight-semibold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.eeui-ribbon__command {
+  display: inline-flex;
+  min-width: 72px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--eeui-space-1);
+
+  padding:
+    var(--eeui-space-2)
+    var(--eeui-space-3);
+
+  border: 1px solid transparent;
+  border-radius: var(--eeui-radius-sm);
+
+  background: transparent;
+  color: var(--eeui-text);
+
+  font-size: var(--eeui-font-size-xs);
+  font-weight: var(--eeui-font-weight-semibold);
+  text-align: center;
+
+  transition:
+    background var(--eeui-fast) ease,
+    border-color var(--eeui-fast) ease,
+    color var(--eeui-fast) ease;
+}
+
+.eeui-ribbon__command:hover {
+  background: var(--eeui-surface);
+  border-color: var(--eeui-border-dark);
+  color: var(--eeui-primary);
+}
+
+/* =========================================================
+   COMPACT
+========================================================= */
+
+.eeui-ribbon--compact .eeui-ribbon__tab {
+  min-height: 36px;
+}
+
+.eeui-ribbon--compact .eeui-ribbon__content {
+  min-height: 54px;
+  padding:
+    var(--eeui-space-2)
+    var(--eeui-space-3);
+}
+
+.eeui-ribbon--compact .eeui-ribbon__command {
+  min-width: 58px;
+  padding:
+    var(--eeui-space-1)
+    var(--eeui-space-2);
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+  .eeui-ribbon__topbar {
+    align-items: stretch;
+    flex-direction: column;
+    padding-top: var(--eeui-space-2);
+  }
+
+  .eeui-ribbon__actions {
+    width: 100%;
+    padding-bottom: var(--eeui-space-2);
+  }
+}
+
+@media (max-width: 700px) {
+  .eeui-ribbon__content {
+    min-height: auto;
+  }
+
+  .eeui-ribbon__command {
+    min-width: 64px;
+  }
+}

@@ -1,0 +1,28 @@
+.eeui-divider{
+display:flex;
+align-items:center;
+gap:12px;
+width:100%;
+margin:16px 0;
+}
+
+.eeui-divider__line{
+flex:1;
+height:1px;
+background:var(--eeui-border);
+}
+
+.eeui-divider__label{
+font-size:12px;
+font-weight:600;
+color:var(--eeui-text-muted);
+white-space:nowrap;
+}
+
+.eeui-divider--vertical{
+width:1px;
+height:100%;
+background:var(--eeui-border);
+display:inline-block;
+margin:0 12px;
+}

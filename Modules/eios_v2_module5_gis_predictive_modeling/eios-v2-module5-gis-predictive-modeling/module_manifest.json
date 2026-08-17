@@ -1,0 +1,11 @@
+{
+  "module": "EIOS V2 Module 5",
+  "name": "GIS Intelligence and Predictive Modeling Engine",
+  "depends_on": [
+    "Module 1",
+    "Module 2",
+    "Module 3",
+    "Module 4"
+  ],
+  "files_count": 18
+}

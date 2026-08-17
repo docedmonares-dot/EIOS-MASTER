@@ -1,0 +1,1 @@
+CREATE TABLE survey_waves(wave_id UUID PRIMARY KEY,wave_name VARCHAR(100));

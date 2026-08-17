@@ -1,0 +1,6 @@
+{
+  "module": "EIOS V2 Module 2",
+  "name": "Deployment Manager, Personnel Assignment, Enumerator App, Offline Synchronization Engine",
+  "depends_on": "EIOS V2 Module 1",
+  "files_count": 30
+}

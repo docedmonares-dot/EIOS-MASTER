@@ -1,0 +1,248 @@
+/* =========================================================
+   EEUI LAYOUT — ENTERPRISE WORKSPACE
+========================================================= */
+
+.eeui-workspace {
+  display: grid;
+  grid-template-rows:
+    auto
+    auto
+    minmax(0, 1fr)
+    auto;
+
+  width: 100%;
+  min-width: 0;
+
+  height: calc(100vh - 132px);
+  min-height: 620px;
+
+  background: var(--eeui-background);
+  border: 1px solid var(--eeui-border);
+  border-radius: var(--eeui-radius-lg);
+
+  box-shadow: var(--eeui-shadow-md);
+  overflow: hidden;
+}
+
+/* =========================================================
+   TITLE BAR
+========================================================= */
+
+.eeui-workspace__titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--eeui-space-4);
+
+  min-width: 0;
+
+  padding:
+    var(--eeui-space-4)
+    var(--eeui-space-5);
+
+  background: var(--eeui-surface);
+  border-bottom: 1px solid var(--eeui-border);
+}
+
+.eeui-workspace__titlebar > div {
+  min-width: 0;
+}
+
+.eeui-workspace__title {
+  overflow: hidden;
+
+  color: var(--eeui-text);
+  font-size: var(--eeui-font-size-xl);
+  font-weight: var(--eeui-font-weight-bold);
+  line-height: var(--eeui-line-height-tight);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eeui-workspace__subtitle {
+  margin-top: var(--eeui-space-1);
+
+  overflow: hidden;
+
+  color: var(--eeui-text-muted);
+  font-size: var(--eeui-font-size-sm);
+  line-height: var(--eeui-line-height-normal);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   RIBBON
+========================================================= */
+
+.eeui-workspace__ribbon {
+  min-width: 0;
+  min-height: 0;
+
+  background: var(--eeui-surface);
+  border-bottom: 1px solid var(--eeui-border);
+
+  overflow: hidden;
+}
+
+/* =========================================================
+   MAIN BODY
+========================================================= */
+
+.eeui-workspace__body {
+  display: grid;
+  grid-template-columns:
+    var(--eeui-workspace-left-width)
+    minmax(0, 1fr)
+    var(--eeui-workspace-right-width);
+
+  min-width: 0;
+  min-height: 0;
+
+  overflow: hidden;
+}
+
+/* =========================================================
+   EXPLORER
+========================================================= */
+
+.eeui-workspace__explorer {
+  min-width: 0;
+  min-height: 0;
+
+  background: var(--eeui-sidebar);
+  border-right: 1px solid var(--eeui-border);
+
+  overflow: auto;
+}
+
+/* =========================================================
+   CANVAS
+========================================================= */
+
+.eeui-workspace__canvas {
+  min-width: 0;
+  min-height: 0;
+
+  background: var(--eeui-background);
+
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+/* =========================================================
+   INSPECTOR
+========================================================= */
+
+.eeui-workspace__inspector {
+  min-width: 0;
+  min-height: 0;
+
+  background: var(--eeui-surface);
+  border-left: 1px solid var(--eeui-border);
+
+  overflow: auto;
+}
+
+/* =========================================================
+   STATUS BAR
+========================================================= */
+
+.eeui-workspace__statusbar {
+  min-width: 0;
+  min-height: 0;
+
+  background: var(--eeui-surface);
+  border-top: 1px solid var(--eeui-border);
+
+  overflow: hidden;
+}
+
+/* =========================================================
+   OPTIONAL STATES
+========================================================= */
+
+.eeui-workspace--no-explorer .eeui-workspace__body {
+  grid-template-columns:
+    minmax(0, 1fr)
+    var(--eeui-workspace-right-width);
+}
+
+.eeui-workspace--no-inspector .eeui-workspace__body {
+  grid-template-columns:
+    var(--eeui-workspace-left-width)
+    minmax(0, 1fr);
+}
+
+.eeui-workspace--canvas-only .eeui-workspace__body {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+  .eeui-workspace {
+    height: calc(100vh - 120px);
+  }
+
+  .eeui-workspace__body {
+    grid-template-columns:
+      240px
+      minmax(0, 1fr)
+      280px;
+  }
+}
+
+@media (max-width: 900px) {
+  .eeui-workspace {
+    height: auto;
+    min-height: 720px;
+  }
+
+  .eeui-workspace__body {
+    grid-template-columns:
+      220px
+      minmax(0, 1fr);
+  }
+
+  .eeui-workspace__inspector {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .eeui-workspace {
+    min-height: 0;
+    height: auto;
+
+    border-radius: var(--eeui-radius-md);
+  }
+
+  .eeui-workspace__body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .eeui-workspace__explorer {
+    max-height: 320px;
+
+    border-right: 0;
+    border-bottom: 1px solid var(--eeui-border);
+  }
+
+  .eeui-workspace__canvas {
+    min-height: 520px;
+  }
+
+  .eeui-workspace__inspector {
+    display: block;
+    max-height: 420px;
+
+    border-left: 0;
+    border-top: 1px solid var(--eeui-border);
+  }
+}

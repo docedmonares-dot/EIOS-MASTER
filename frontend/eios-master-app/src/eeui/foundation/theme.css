@@ -1,0 +1,13 @@
+/* =========================================================
+   EEUI FOUNDATION — LIGHT THEME
+========================================================= */
+
+body {
+
+  background:
+    var(--eeui-background);
+
+  color:
+    var(--eeui-text);
+
+}

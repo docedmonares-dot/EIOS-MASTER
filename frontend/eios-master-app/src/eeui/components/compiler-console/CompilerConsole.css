@@ -1,0 +1,526 @@
+/* =========================================================
+   EEUI — COMPILER CONSOLE
+========================================================= */
+
+.compiler-console {
+  display: flex;
+  width: min(920px, calc(100vw - 32px));
+  max-height: min(760px, calc(100vh - 32px));
+  flex-direction: column;
+
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1200;
+
+  overflow: hidden;
+
+  border: 1px solid var(--eeui-border-dark);
+  border-radius: var(--eeui-radius-md);
+
+  background: var(--eeui-surface);
+  color: var(--eeui-text);
+
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.24),
+    0 8px 20px rgba(15, 23, 42, 0.12);
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.compiler-console__header {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--eeui-space-3);
+
+  padding:
+    var(--eeui-space-3)
+    var(--eeui-space-4);
+
+  background: #0f172a;
+  color: #ffffff;
+  border-bottom: 1px solid #1e293b;
+}
+
+.compiler-console__header > div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--eeui-space-3);
+}
+
+.compiler-console__header > div > div {
+  min-width: 0;
+}
+
+.compiler-console__header span {
+  display: block;
+
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.compiler-console__header h2 {
+  margin: 2px 0 0;
+
+  color: #ffffff;
+  font-size: var(--eeui-font-size-lg);
+  font-weight: var(--eeui-font-weight-bold);
+}
+
+.compiler-console__header button {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--eeui-radius-sm);
+
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+
+  transition:
+    background var(--eeui-fast) ease,
+    border-color var(--eeui-fast) ease;
+}
+
+.compiler-console__header button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+/* =========================================================
+   BODY
+========================================================= */
+
+.compiler-console__body {
+  min-height: 260px;
+  padding: var(--eeui-space-4);
+
+  overflow: auto;
+  overscroll-behavior: contain;
+
+  background: #f8fafc;
+}
+
+/* =========================================================
+   LOADING, EMPTY, FATAL
+========================================================= */
+
+.compiler-console__loading,
+.compiler-console__empty,
+.compiler-console__fatal {
+  display: flex;
+  min-height: 260px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--eeui-space-3);
+
+  padding: var(--eeui-space-5);
+
+  text-align: center;
+}
+
+.compiler-console__loading svg {
+  animation: compiler-console-spin 0.9s linear infinite;
+}
+
+.compiler-console__loading strong,
+.compiler-console__empty strong,
+.compiler-console__fatal strong {
+  color: var(--eeui-text);
+  font-size: var(--eeui-font-size-md);
+  font-weight: var(--eeui-font-weight-bold);
+}
+
+.compiler-console__loading span,
+.compiler-console__empty span,
+.compiler-console__fatal span {
+  max-width: 520px;
+
+  color: var(--eeui-text-muted);
+  font-size: var(--eeui-font-size-sm);
+  line-height: var(--eeui-line-height-relaxed);
+}
+
+.compiler-console__fatal {
+  color: var(--eeui-danger);
+}
+
+.compiler-console__fatal strong {
+  color: var(--eeui-danger);
+}
+
+/* =========================================================
+   SUMMARY
+========================================================= */
+
+.compiler-console__summary {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: var(--eeui-space-3);
+}
+
+.compiler-console__summary article {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: var(--eeui-space-3);
+
+  padding: var(--eeui-space-3);
+
+  border: 1px solid var(--eeui-border);
+  border-radius: var(--eeui-radius-sm);
+
+  background: var(--eeui-surface);
+}
+
+.compiler-console__summary article > div {
+  min-width: 0;
+}
+
+.compiler-console__summary article > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+
+  color: var(--eeui-primary);
+}
+
+.compiler-console__summary span {
+  display: block;
+
+  color: var(--eeui-text-muted);
+  font-size: 11px;
+  font-weight: var(--eeui-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.compiler-console__summary strong {
+  display: block;
+  margin-top: var(--eeui-space-1);
+
+  overflow: hidden;
+
+  color: var(--eeui-text);
+  font-size: var(--eeui-font-size-sm);
+  font-weight: var(--eeui-font-weight-bold);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compiler-console__summary small {
+  display: block;
+  margin-top: var(--eeui-space-1);
+
+  color: var(--eeui-text-muted);
+  font-size: 11px;
+}
+
+/* =========================================================
+   METRICS
+========================================================= */
+
+.compiler-console__metrics {
+  display: grid;
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+  gap: var(--eeui-space-2);
+
+  margin-top: var(--eeui-space-3);
+}
+
+.compiler-console__metrics > div {
+  padding:
+    var(--eeui-space-3)
+    var(--eeui-space-2);
+
+  border: 1px solid var(--eeui-border);
+  border-radius: var(--eeui-radius-sm);
+
+  background: var(--eeui-surface);
+
+  text-align: center;
+}
+
+.compiler-console__metrics span {
+  display: block;
+
+  color: var(--eeui-text-muted);
+  font-size: 11px;
+  font-weight: var(--eeui-font-weight-semibold);
+  text-transform: uppercase;
+}
+
+.compiler-console__metrics strong {
+  display: block;
+  margin-top: var(--eeui-space-1);
+
+  color: var(--eeui-text);
+  font-size: var(--eeui-font-size-lg);
+  font-weight: var(--eeui-font-weight-bold);
+}
+
+/* =========================================================
+   HASH
+========================================================= */
+
+.compiler-console__hash {
+  margin-top: var(--eeui-space-3);
+  padding: var(--eeui-space-3);
+
+  border: 1px solid var(--eeui-border);
+  border-radius: var(--eeui-radius-sm);
+
+  background: #0f172a;
+}
+
+.compiler-console__hash span {
+  display: block;
+
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.compiler-console__hash code {
+  display: block;
+  margin-top: var(--eeui-space-2);
+
+  overflow-wrap: anywhere;
+
+  color: #e2e8f0;
+  font-family:
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* =========================================================
+   ISSUES
+========================================================= */
+
+.compiler-console__issues {
+  margin-top: var(--eeui-space-3);
+
+  overflow: hidden;
+
+  border: 1px solid var(--eeui-border);
+  border-radius: var(--eeui-radius-sm);
+
+  background: var(--eeui-surface);
+}
+
+.compiler-console__issues--error {
+  border-color: #fecaca;
+}
+
+.compiler-console__issues--warning {
+  border-color: #fde68a;
+}
+
+.compiler-console__issues-header {
+  display: flex;
+  align-items: center;
+  gap: var(--eeui-space-2);
+
+  padding:
+    var(--eeui-space-3)
+    var(--eeui-space-4);
+
+  border-bottom: 1px solid var(--eeui-border);
+}
+
+.compiler-console__issues--error
+  .compiler-console__issues-header {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.compiler-console__issues--warning
+  .compiler-console__issues-header {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.compiler-console__issues-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.compiler-console__issues-list article {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(220px, 0.55fr);
+  gap: var(--eeui-space-4);
+
+  padding: var(--eeui-space-3) var(--eeui-space-4);
+
+  border-bottom: 1px solid var(--eeui-border);
+}
+
+.compiler-console__issues-list article:last-child {
+  border-bottom: 0;
+}
+
+.compiler-console__issues-list article > div {
+  min-width: 0;
+}
+
+.compiler-console__issues-list article strong {
+  display: block;
+
+  color: var(--eeui-text);
+  font-family:
+    "SFMono-Regular",
+    Consolas,
+    monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.compiler-console__issues-list article span {
+  display: block;
+  margin-top: var(--eeui-space-1);
+
+  color: var(--eeui-text-muted);
+  font-size: var(--eeui-font-size-sm);
+  line-height: var(--eeui-line-height-relaxed);
+}
+
+.compiler-console__issues-list dl {
+  display: grid;
+  grid-template-columns:
+    auto
+    minmax(0, 1fr);
+  align-content: start;
+  gap:
+    var(--eeui-space-1)
+    var(--eeui-space-2);
+
+  margin: 0;
+}
+
+.compiler-console__issues-list dt {
+  color: var(--eeui-text-light);
+  font-size: 11px;
+  font-weight: var(--eeui-font-weight-semibold);
+}
+
+.compiler-console__issues-list dd {
+  min-width: 0;
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--eeui-text-muted);
+  font-family:
+    "SFMono-Regular",
+    Consolas,
+    monospace;
+  font-size: 11px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   SUCCESS STATE
+========================================================= */
+
+.compiler-console__success {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--eeui-space-3);
+
+  margin-top: var(--eeui-space-3);
+  padding: var(--eeui-space-4);
+
+  border: 1px solid #bbf7d0;
+  border-radius: var(--eeui-radius-sm);
+
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.compiler-console__success strong {
+  display: block;
+
+  color: #166534;
+  font-size: var(--eeui-font-size-sm);
+  font-weight: var(--eeui-font-weight-bold);
+}
+
+.compiler-console__success span {
+  display: block;
+  margin-top: var(--eeui-space-1);
+
+  color: #166534;
+  font-size: var(--eeui-font-size-sm);
+}
+
+/* =========================================================
+   ANIMATION
+========================================================= */
+
+@keyframes compiler-console-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+  .compiler-console {
+    right: 8px;
+    bottom: 8px;
+
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+  }
+
+  .compiler-console__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .compiler-console__metrics {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .compiler-console__issues-list article {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 540px) {
+  .compiler-console__body {
+    padding: var(--eeui-space-3);
+  }
+
+  .compiler-console__metrics {
+    grid-template-columns: 1fr;
+  }
+}

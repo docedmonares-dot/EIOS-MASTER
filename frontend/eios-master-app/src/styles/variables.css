@@ -1,0 +1,90 @@
+/* ==========================================
+   EIOS ENTERPRISE DESIGN TOKENS
+   ========================================== */
+
+:root {
+
+  /* ========================================
+     BRAND COLORS
+  ======================================== */
+
+  --color-primary: #2563EB;
+  --color-primary-dark: #1D4ED8;
+  --color-primary-light: #DBEAFE;
+
+  --color-success: #16A34A;
+  --color-warning: #F59E0B;
+  --color-danger: #DC2626;
+
+  /* ========================================
+     BACKGROUND
+  ======================================== */
+
+  --color-background: #F8FAFC;
+  --color-surface: #FFFFFF;
+
+  /* ========================================
+     TEXT
+  ======================================== */
+
+  --color-text: #0F172A;
+  --color-text-secondary: #64748B;
+
+  /* ========================================
+     BORDERS
+  ======================================== */
+
+  --color-border: #E2E8F0;
+
+  /* ========================================
+     BORDER RADIUS
+  ======================================== */
+
+  --radius-small: 8px;
+  --radius-medium: 12px;
+  --radius-large: 16px;
+  --radius-xl: 20px;
+
+  /* ========================================
+     SPACING
+  ======================================== */
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ========================================
+     SHADOWS
+  ======================================== */
+
+  --shadow-card:
+      0 8px 24px rgba(15,23,42,.08);
+
+  --shadow-hover:
+      0 18px 40px rgba(37,99,235,.18);
+
+  /* ========================================
+     TYPOGRAPHY
+  ======================================== */
+
+  --font-family:
+      "Inter",
+      "Segoe UI",
+      Arial,
+      sans-serif;
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 40px;
+
+}

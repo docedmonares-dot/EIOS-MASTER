@@ -1,0 +1,16 @@
+EIOS DEPLOYMENT GUIDE (PHASE 1)
+
+STEP 1: CREATE RENDER BACKEND SERVICE
+
+1. Go to: https://render.com
+2. Sign up / login
+3. Click "New +"
+4. Select "Web Service"
+5. Connect your GitHub repository (EIOS-MASTER)
+6. Fill in:
+   - Name: eios-backend
+   - Environment: Node
+   - Build Command: npm install
+   - Start Command: node server.js
+7. Select Free Plan
+8. Click Create Web Service

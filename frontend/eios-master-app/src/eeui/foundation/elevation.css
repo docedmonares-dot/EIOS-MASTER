@@ -1,0 +1,124 @@
+/* =========================================================
+   EEUI FOUNDATION — ELEVATION, BORDERS, AND SURFACES
+========================================================= */
+
+.eeui-surface {
+  background: var(--eeui-surface);
+  border: 1px solid var(--eeui-border);
+}
+
+.eeui-panel {
+  background: var(--eeui-panel);
+  border: 1px solid var(--eeui-border);
+}
+
+.eeui-sidebar-surface {
+  background: var(--eeui-sidebar);
+  border-right: 1px solid var(--eeui-border);
+}
+
+.eeui-border {
+  border: 1px solid var(--eeui-border);
+}
+
+.eeui-border-top {
+  border-top: 1px solid var(--eeui-border);
+}
+
+.eeui-border-right {
+  border-right: 1px solid var(--eeui-border);
+}
+
+.eeui-border-bottom {
+  border-bottom: 1px solid var(--eeui-border);
+}
+
+.eeui-border-left {
+  border-left: 1px solid var(--eeui-border);
+}
+
+.eeui-radius-xs {
+  border-radius: var(--eeui-radius-xs);
+}
+
+.eeui-radius-sm {
+  border-radius: var(--eeui-radius-sm);
+}
+
+.eeui-radius-md {
+  border-radius: var(--eeui-radius-md);
+}
+
+.eeui-radius-lg {
+  border-radius: var(--eeui-radius-lg);
+}
+
+.eeui-radius-xl {
+  border-radius: var(--eeui-radius-xl);
+}
+
+.eeui-shadow-none {
+  box-shadow: none;
+}
+
+.eeui-shadow-sm {
+  box-shadow: var(--eeui-shadow-sm);
+}
+
+.eeui-shadow-md {
+  box-shadow: var(--eeui-shadow-md);
+}
+
+.eeui-shadow-lg {
+  box-shadow: var(--eeui-shadow-lg);
+}
+
+.eeui-elevation-1 {
+  background: var(--eeui-surface);
+  border: 1px solid var(--eeui-border);
+  box-shadow: var(--eeui-shadow-sm);
+}
+
+.eeui-elevation-2 {
+  background: var(--eeui-surface);
+  border: 1px solid var(--eeui-border);
+  box-shadow: var(--eeui-shadow-md);
+}
+
+.eeui-elevation-3 {
+  background: var(--eeui-surface);
+  border: 1px solid var(--eeui-border);
+  box-shadow: var(--eeui-shadow-lg);
+}
+
+.eeui-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--eeui-border);
+}
+
+.eeui-inset {
+  background: var(--eeui-background);
+  border: 1px solid var(--eeui-border);
+  box-shadow:
+    inset 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.eeui-selected {
+  border-color: var(--eeui-primary);
+  box-shadow:
+    0 0 0 2px var(--eeui-primary-light);
+}
+
+.eeui-hover-surface {
+  transition:
+    background var(--eeui-fast) ease,
+    border-color var(--eeui-fast) ease,
+    box-shadow var(--eeui-fast) ease;
+}
+
+.eeui-hover-surface:hover {
+  background: var(--eeui-panel);
+  border-color: var(--eeui-border-dark);
+  box-shadow: var(--eeui-shadow-sm);
+}

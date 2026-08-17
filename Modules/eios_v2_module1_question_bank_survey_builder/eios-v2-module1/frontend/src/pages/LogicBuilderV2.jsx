@@ -1,0 +1,8 @@
+import React,{useState}from'react';
+import { LogicAPI } from '../services/eiosV2Api';
+export default function LogicBuilderV2({surveyId,questions=[]}){
+  const [rule,setRule]=useState({source_question_id:'',operator:'equals',answer_value:'',action_type:'hide',affected_question_ids:[]});
+  function toggle(id){setRule(p=>({...p,affected_question_ids:p.affected_question_ids.includes(id)?p.affected_question_ids.filter(x=>x!==id):[...p.affected_question_ids,id]}))}
+  async function save(){await LogicAPI.create({survey_id:surveyId,source_question_id:rule.source_question_id,condition_json:{if:{question_id:rule.source_question_id,operator:rule.operator,value:rule.answer_value}},action_json:{then:{action:rule.action_type}},affected_questions_json:rule.affected_question_ids}); alert('Logic rule saved.')}
+  return <div className="page"><h1>Question Logic Builder</h1><h3>IF</h3><select onChange={e=>setRule({...rule,source_question_id:e.target.value})}>{questions.map(q=><option value={q.question_id}>{q.question_code} — {q.question_text}</option>)}</select><select onChange={e=>setRule({...rule,operator:e.target.value})}><option>equals</option><option>not_equals</option><option>contains</option><option>not_contains</option></select><input placeholder="Answer value" onChange={e=>setRule({...rule,answer_value:e.target.value})}/><h3>THEN</h3><select onChange={e=>setRule({...rule,action_type:e.target.value})}><option>hide</option><option>show</option><option>require</option><option>skip_to</option></select><h3>Affected Questions</h3>{questions.map(q=><label><input type="checkbox" onChange={()=>toggle(q.question_id)}/>{q.question_code} — {q.question_text}</label>)}<button onClick={save}>Save Logic Rule</button></div>
+}

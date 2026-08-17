@@ -1,0 +1,9 @@
+const express = require('express');
+const router = express.Router();
+
+const controller = require('../controllers/surveyQuestionController');
+
+router.get('/', controller.getAllSurveyQuestions);
+router.post('/', controller.addQuestionToSurvey);
+
+module.exports = router;

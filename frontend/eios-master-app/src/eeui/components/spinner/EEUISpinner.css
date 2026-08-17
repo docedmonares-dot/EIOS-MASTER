@@ -1,0 +1,36 @@
+.eeui-spinner{
+display:inline-block;
+
+border-radius:50%;
+
+border:3px solid #e5e7eb;
+
+border-top-color:var(--eeui-primary);
+
+animation:eeui-spin .8s linear infinite;
+}
+
+.eeui-spinner--small{
+width:18px;
+height:18px;
+}
+
+.eeui-spinner--medium{
+width:28px;
+height:28px;
+}
+
+.eeui-spinner--large{
+width:42px;
+height:42px;
+}
+
+@keyframes eeui-spin{
+
+to{
+
+transform:rotate(360deg);
+
+}
+
+}

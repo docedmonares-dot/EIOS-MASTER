@@ -1,0 +1,109 @@
+:root {
+
+  /* =========================================================
+     BRAND COLORS
+  ========================================================= */
+
+  --eeui-primary: #1E40AF;
+  --eeui-primary-hover: #1D4ED8;
+  --eeui-primary-light: #DBEAFE;
+
+  --eeui-success: #16A34A;
+  --eeui-warning: #D97706;
+  --eeui-danger: #DC2626;
+  --eeui-info: #0891B2;
+
+  /* =========================================================
+     SURFACES
+  ========================================================= */
+
+  --eeui-background: #F5F7FB;
+  --eeui-surface: #FFFFFF;
+  --eeui-panel: #FAFBFC;
+  --eeui-sidebar: #F8FAFC;
+
+  /* =========================================================
+     TEXT
+  ========================================================= */
+
+  --eeui-text: #111827;
+  --eeui-text-muted: #6B7280;
+  --eeui-text-light: #9CA3AF;
+  --eeui-text-inverse: #FFFFFF;
+
+  /* =========================================================
+     BORDERS
+  ========================================================= */
+
+  --eeui-border: #E5E7EB;
+  --eeui-border-dark: #CBD5E1;
+
+  /* =========================================================
+     SPACING
+  ========================================================= */
+
+  --eeui-space-1: 4px;
+  --eeui-space-2: 8px;
+  --eeui-space-3: 12px;
+  --eeui-space-4: 16px;
+  --eeui-space-5: 20px;
+  --eeui-space-6: 24px;
+  --eeui-space-7: 32px;
+  --eeui-space-8: 40px;
+  --eeui-space-9: 48px;
+  --eeui-space-10: 64px;
+
+  /* =========================================================
+     BORDER RADIUS
+  ========================================================= */
+
+  --eeui-radius-xs: 4px;
+  --eeui-radius-sm: 6px;
+  --eeui-radius-md: 10px;
+  --eeui-radius-lg: 14px;
+  --eeui-radius-xl: 20px;
+
+  /* =========================================================
+     SHADOWS
+  ========================================================= */
+
+  --eeui-shadow-sm:
+      0 1px 2px rgba(0,0,0,.05);
+
+  --eeui-shadow-md:
+      0 6px 18px rgba(0,0,0,.08);
+
+  --eeui-shadow-lg:
+      0 12px 36px rgba(0,0,0,.12);
+
+  /* =========================================================
+     TRANSITIONS
+  ========================================================= */
+
+  --eeui-fast: 150ms;
+  --eeui-normal: 250ms;
+  --eeui-slow: 350ms;
+
+  /* =========================================================
+     LAYOUT
+  ========================================================= */
+
+  --eeui-header-height: 64px;
+  --eeui-ribbon-height: 82px;
+  --eeui-statusbar-height: 34px;
+
+  --eeui-sidebar-width: 300px;
+  --eeui-inspector-width: 340px;
+  --eeui-library-width: 340px;
+
+  /* =========================================================
+     Z INDEX
+  ========================================================= */
+
+  --eeui-z-dropdown: 1000;
+  --eeui-z-sticky: 1020;
+  --eeui-z-overlay: 1040;
+  --eeui-z-modal: 1060;
+  --eeui-z-toast: 1080;
+
+}

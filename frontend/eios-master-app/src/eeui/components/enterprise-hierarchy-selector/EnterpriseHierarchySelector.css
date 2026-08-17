@@ -1,0 +1,266 @@
+/* =========================================================
+   EEUI — ENTERPRISE HIERARCHY SELECTOR
+========================================================= */
+
+.enterprise-hierarchy-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  padding: 16px;
+
+  border: 1px solid #dbe3ec;
+  border-radius: 10px;
+
+  background: #ffffff;
+  color: #0f172a;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.enterprise-hierarchy-selector__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.enterprise-hierarchy-selector__header > div {
+  min-width: 0;
+}
+
+.enterprise-hierarchy-selector__header span {
+  display: block;
+
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.enterprise-hierarchy-selector__header h3 {
+  margin: 4px 0 0;
+
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.enterprise-hierarchy-selector__header p {
+  margin: 6px 0 0;
+
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.enterprise-hierarchy-selector__header button {
+  display: inline-flex;
+  min-height: 34px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  padding: 7px 10px;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+
+  background: #ffffff;
+  color: #475569;
+
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.enterprise-hierarchy-selector__header button:hover:not(:disabled) {
+  border-color: #2563eb;
+  color: #1d4ed8;
+}
+
+.enterprise-hierarchy-selector__header button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.enterprise-hierarchy-selector__error {
+  padding: 10px 12px;
+
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+
+  background: #fef2f2;
+  color: #b91c1c;
+
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   LEVELS
+========================================================= */
+
+.enterprise-hierarchy-selector__levels {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.enterprise-hierarchy-selector__field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.enterprise-hierarchy-selector__field > span {
+  overflow: hidden;
+
+  color: #475569;
+  font-size: 11px;
+  font-weight: 800;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.enterprise-hierarchy-selector__select-wrap {
+  position: relative;
+}
+
+.enterprise-hierarchy-selector__select-wrap select {
+  width: 100%;
+  min-height: 40px;
+
+  padding:
+    8px
+    38px
+    8px
+    11px;
+
+  appearance: none;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+
+  background: #ffffff;
+  color: #0f172a;
+
+  font: inherit;
+  font-size: 12px;
+
+  cursor: pointer;
+}
+
+.enterprise-hierarchy-selector__select-wrap select:hover:not(:disabled) {
+  border-color: #94a3b8;
+}
+
+.enterprise-hierarchy-selector__select-wrap select:focus {
+  outline: none;
+
+  border-color: #2563eb;
+
+  box-shadow:
+    0 0 0 3px rgba(37, 99, 235, 0.13);
+}
+
+.enterprise-hierarchy-selector__select-wrap select:disabled {
+  cursor: not-allowed;
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+.enterprise-hierarchy-selector__select-wrap > svg {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+
+  transform: translateY(-50%);
+
+  pointer-events: none;
+
+  color: #64748b;
+}
+
+.enterprise-hierarchy-selector__spinner {
+  animation:
+    enterprise-hierarchy-selector-spin
+    0.85s linear infinite;
+}
+
+/* =========================================================
+   BREADCRUMB
+========================================================= */
+
+.enterprise-hierarchy-selector__breadcrumb {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+
+  padding: 10px 12px;
+
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.enterprise-hierarchy-selector__breadcrumb svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.enterprise-hierarchy-selector__breadcrumb span {
+  min-width: 0;
+
+  overflow-wrap: anywhere;
+
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   ANIMATION
+========================================================= */
+
+@keyframes enterprise-hierarchy-selector-spin {
+  to {
+    transform:
+      translateY(-50%)
+      rotate(360deg);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 720px) {
+  .enterprise-hierarchy-selector__levels {
+    grid-template-columns: 1fr;
+  }
+
+  .enterprise-hierarchy-selector__header {
+    flex-direction: column;
+  }
+
+  .enterprise-hierarchy-selector__header button {
+    align-self: flex-start;
+  }
+}

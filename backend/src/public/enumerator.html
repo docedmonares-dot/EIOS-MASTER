@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enumerator Field App</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- ✅ LEAFLET (ADDED - REQUIRED FOR MAP) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 0;
+            background: #f4f6f9;
+        }
+
+        .header {
+            background: #111827;
+            color: white;
+            padding: 15px;
+            font-size: 18px;
+        }
+
+        .container {
+            padding: 15px;
+        }
+
+        input, button, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #gpsStatus, #netStatus, #respondentBox, #errorBox {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+
+        img.preview {
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 10px;
+        }
+
+        /* ✅ MAP STYLE (ADDED) */
+        #map {
+            height: 250px;
+            margin-top: 10px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    📱 Enumerator Field App (Production Ready + Live Map)
+</div>
+
+<div class="container">
+
+    <!-- LOGIN -->
+    <div class="card" id="loginBox">
+        <h3>Login</h3>
+        <input id="email" placeholder="Email">
+        <input id="password" type="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <div id="status"></div>
+    </div>
+
+    <!-- FORM -->
+    <div class="card" id="formBox" style="display:none;">
+
+        <h3>Survey Form</h3>
+
+        <div id="respondentBox"></div>
+        <div id="errorBox" class="error"></div>
+        <div id="map" style="height:250px; margin-top:10px; border-radius:10px;"></div>
+        <div id="mapStatus" style="font-size:12px; margin-top:5px;"></div>
+
+        <input id="fullname" placeholder="Full Name">
+        <input id="age" placeholder="Age" type="number">
+
+        <select id="gender">
+            <option value="">Select Gender</option>
+            <option>Male</option>
+            <option>Female</option>
+        </select>
+
+        <input id="barangay" placeholder="Barangay">
+
+        <!-- ✅ LIVE MAP ADDED (SAFE - NO BREAKING) -->
+        <div id="map"></div>
+        <div id="barangayDisplay" style="font-weight:bold; margin-top:5px;"></div>
+
+        <input type="file" id="photo" accept="image/*" capture="environment">
+
+        <img id="preview" class="preview" style="display:none;">
+
+        <button onclick="submitSurvey()">Submit Survey</button>
+
+        <div id="gpsStatus"></div>
+        <div id="netStatus"></div>
+
+    </div>
+
+</div>
+
+<script>
+
+let token = null;
+let latitude = null;
+let longitude = null;
+
+let map;
+let marker;
+let mapReady = false;
+
+let respondent_id = null;
+let photoBase64 = null;
+let socket = null;
+
+let gpsBuffer = [];
+let offlineQueue = JSON.parse(localStorage.getItem("offlineQueue") || "[]");
+
+/* ======================
+   MAP INIT
+====================== */
+function initMap() {
+
+    if (mapReady) return;
+
+    map = L.map('map').setView([14.5995, 120.9842], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    marker = L.marker([14.5995, 120.9842]).addTo(map)
+        .bindPopup("Your location")
+        .openPopup();
+
+    mapReady = true;
+}
+
+/* ======================
+   RESPONDENT ID
+====================== */
+function generateRespondentID() {
+    return "RESP-" + Math.random().toString(36).substring(2, 7).toUpperCase();
+}
+
+/* ======================
+   IMAGE COMPRESSION
+====================== */
+function compressImage(file, quality = 0.6, maxWidth = 800) {
+
+    return new Promise((resolve) => {
+
+        const reader = new FileReader();
+
+        reader.onload = function (event) {
+
+            const img = new Image();
+
+            img.onload = function () {
+
+                const canvas = document.createElement("canvas");
+
+                const scale = maxWidth / img.width;
+                canvas.width = maxWidth;
+                canvas.height = img.height * scale;
+
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                resolve(canvas.toDataURL("image/jpeg", quality));
+            };
+
+            img.src = event.target.result;
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+/* ======================
+   PHOTO HANDLER
+====================== */
+document.getElementById("photo").addEventListener("change", async function (e) {
+
+    const file = e.target.files[0];
+    if (!file) return;
+
+    photoBase64 = await compressImage(file);
+
+    const img = document.getElementById("preview");
+    img.src = photoBase64;
+    img.style.display = "block";
+});
+
+/* ======================
+   LOGIN (FIXED SOCKET INIT)
+====================== */
+async function login() {
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.token) {
+        document.getElementById("status").innerText = "Login failed";
+        return;
+    }
+
+    token = data.token;
+    localStorage.setItem("token", token);
+
+    socket = io(); // ✅ ONLY ONCE
+
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("formBox").style.display = "block";
+
+    getLocation();
+    respondent_id = generateRespondentID();
+
+    document.getElementById("respondentBox").innerText =
+        "Respondent ID: " + respondent_id;
+
+}
+
+/* ======================
+   GPS + MAP + SOCKET FIXED
+====================== */
+function getLocation() {
+
+    navigator.geolocation.watchPosition((pos) => {
+
+        latitude = pos.coords.latitude;
+        longitude = pos.coords.longitude;
+
+        if (!mapReady) initMap();
+
+        const latlng = [latitude, longitude];
+
+        // map update
+        marker.setLatLng(latlng);
+        map.setView(latlng, 16);
+
+        document.getElementById("mapStatus").innerText =
+            "📍 Live tracking active";
+
+        document.getElementById("gpsStatus").innerText =
+            "GPS: " + latitude + ", " + longitude;
+
+        document.getElementById("barangayDisplay").innerText =
+            "Tracking Area: " + (window.assignedBarangay || "Unassigned");
+
+        // socket emit (SAFE INSIDE FUNCTION ONLY)
+        if (socket && respondent_id) {
+            socket.emit("gps-update", {
+                user_id: respondent_id,
+                latitude,
+                longitude
+            });
+        }
+
+    });
+}
+
+/* ======================
+   OFFLINE SAVE
+====================== */
+function saveOffline(payload) {
+    async function syncOfflineData() {
+
+    if (!navigator.onLine) return;
+    if (!offlineQueue || offlineQueue.length === 0) return;
+
+    let remaining = [];
+
+    for (let item of offlineQueue) {
+
+        try {
+
+            const res = await fetch("/api/field/survey", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify(item)
+            });
+
+            if (!res.ok) {
+                remaining.push(item);
+            }
+
+        } catch (err) {
+            remaining.push(item);
+        }
+    }
+
+    offlineQueue = remaining;
+    localStorage.setItem("offlineQueue", JSON.stringify(offlineQueue));
+}
+    offlineQueue.push(payload);
+    localStorage.setItem("offlineQueue", JSON.stringify(offlineQueue));
+}
+
+/* ======================
+   SUBMIT SURVEY
+====================== */
+async function submitSurvey() {
+
+    const payload = {
+        respondent_id,
+        full_name: document.getElementById("fullname").value,
+        age: Number(document.getElementById("age").value),
+        gender: document.getElementById("gender").value,
+        barangay: document.getElementById("barangay").value,
+        latitude,
+        longitude,
+        photo: photoBase64,
+        timestamp: new Date().toISOString()
+    };
+
+    if (!navigator.onLine) {
+        saveOffline(payload);
+        alert("Saved offline");
+        return;
+    }
+
+    try {
+
+        const res = await fetch("/api/field/survey", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error();
+
+        alert("Survey submitted");
+
+    } catch (err) {
+        saveOffline(payload);
+        alert("Saved offline due to error");
+    }
+}
+
+/* ======================
+   HEARTBEAT (SAFE)
+====================== */
+setInterval(() => {
+
+    if (socket && respondent_id && navigator.onLine) {
+        socket.emit("enumerator-heartbeat", {
+            user_id: respondent_id
+        });
+    }
+
+}, 5000);
+
+/* ======================
+   NETWORK STATUS
+====================== */
+setInterval(() => {
+
+    document.getElementById("netStatus").innerText =
+        navigator.onLine ? "🟢 Online" : "🔴 Offline Mode";
+
+}, 1000);
+
+window.addEventListener("online", () => {
+
+    // reconnect socket if needed
+    if (!socket) {
+        socket = io();
+    }
+
+    // auto-sync offline data when internet returns
+    if (typeof syncOfflineData === "function") {
+        syncOfflineData();
+    }
+
+    console.log("🌐 Back online — syncing data...");
+});
+
+</script>
+
+</body>
+</html>
