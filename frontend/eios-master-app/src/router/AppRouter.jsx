@@ -49,6 +49,11 @@ const ENUMERATOR_ROLES = [
   "ENUMERATOR",
 ];
 
+const SUPERVISOR_ROLES = [
+  "ADMIN",
+  "SUPERVISOR",
+];
+
 function ModulePage({
   title,
   description,
@@ -213,7 +218,7 @@ export default function AppRouter() {
         <Route
           path="/supervisor"
           element={
-            <ProtectedModule>
+            <ProtectedModule allowedRoles={SUPERVISOR_ROLES}>
               <DeploymentOperationsPage title="Supervisor Field Operations" />
             </ProtectedModule>
           }
