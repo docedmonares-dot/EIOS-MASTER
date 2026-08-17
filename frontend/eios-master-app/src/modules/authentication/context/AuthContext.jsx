@@ -104,6 +104,10 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const updateUser = (nextUser) => {
+    setUser(nextUser);
+  };
+
   const hasRole = (allowedRoles = []) => {
     if (!user) {
       return false;
@@ -128,6 +132,7 @@ export function AuthProvider({ children }) {
       isAuthenticated: Boolean(user),
       login,
       logout,
+      updateUser,
       hasRole,
     }),
     [user, authLoading]

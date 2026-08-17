@@ -41,6 +41,13 @@ export default function ProtectedRoute({
     );
   }
 
+  if (
+    user?.must_change_password &&
+    location.pathname !== "/change-password"
+  ) {
+    return <Navigate to="/change-password" replace />;
+  }
+
   if (allowedRoles.length > 0 && !hasRole(allowedRoles)) {
     return (
       <div

@@ -141,6 +141,14 @@ exports.login = async (req, res) => {
 
         if (!passwordValid) {
 
+            const maximumAttempts = Number(
+                process.env.LOGIN_MAX_ATTEMPTS || 5
+            );
+
+            const lockMinutes = Number(
+                process.env.LOGIN_LOCK_MINUTES || 15
+            );
+
             await pool.query(
 
                 `
@@ -149,12 +157,22 @@ exports.login = async (req, res) => {
                 SET
 
                     failed_login_attempts =
-                        failed_login_attempts + 1
+                        COALESCE(failed_login_attempts, 0) + 1,
+
+                    locked_until = CASE
+                        WHEN COALESCE(failed_login_attempts, 0) + 1 >= $2
+                        THEN NOW() + ($3 * INTERVAL '1 minute')
+                        ELSE locked_until
+                    END
 
                 WHERE user_id = $1
                 `,
 
-                [user.user_id]
+                [
+                    user.user_id,
+                    maximumAttempts,
+                    lockMinutes
+                ]
 
             );
 
@@ -177,6 +195,8 @@ exports.login = async (req, res) => {
             SET
 
                 failed_login_attempts = 0,
+
+                locked_until = NULL,
 
                 last_login_at = NOW()
 
@@ -222,7 +242,8 @@ exports.login = async (req, res) => {
 
                 {
 
-                    expiresIn: "8h"
+                    expiresIn:
+                        process.env.JWT_EXPIRES_IN || "8h"
 
                 }
 
@@ -363,4 +384,80 @@ exports.me = async (req, res) => {
 
     }
 
+};
+
+/* =========================================================
+   CHANGE OWN PASSWORD
+========================================================= */
+
+exports.changePassword = async (req, res) => {
+    try {
+        const currentPassword = String(
+            req.body?.current_password || ""
+        );
+        const newPassword = String(
+            req.body?.new_password || ""
+        );
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Current and new passwords are required."
+            });
+        }
+
+        if (newPassword.length < 12) {
+            return res.status(400).json({
+                success: false,
+                message: "The new password must contain at least 12 characters."
+            });
+        }
+
+        if (currentPassword === newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "The new password must differ from the current password."
+            });
+        }
+
+        const userResult = await pool.query(
+            `SELECT user_id, password_hash FROM users WHERE user_id = $1 LIMIT 1`,
+            [req.user.user_id]
+        );
+        const user = userResult.rows[0];
+
+        if (!user || !(await bcrypt.compare(currentPassword, user.password_hash))) {
+            return res.status(400).json({
+                success: false,
+                message: "The current password is incorrect."
+            });
+        }
+
+        const passwordHash = await bcrypt.hash(newPassword, 12);
+
+        await pool.query(
+            `
+            UPDATE users
+            SET password_hash = $1,
+                must_change_password = FALSE,
+                password_changed_at = NOW(),
+                failed_login_attempts = 0,
+                locked_until = NULL,
+                updated_at = NOW()
+            WHERE user_id = $2
+            `,
+            [passwordHash, req.user.user_id]
+        );
+
+        return res.json({
+            success: true,
+            message: "Password changed successfully."
+        });
+    } catch (error) {
+        console.error("CHANGE PASSWORD ERROR:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Unable to change the password."
+        });
+    }
 };

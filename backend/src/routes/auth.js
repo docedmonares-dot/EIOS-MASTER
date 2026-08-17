@@ -23,6 +23,12 @@ router.get(
     authController.healthCheck
 );
 
+router.post(
+    "/change-password",
+    verifyToken,
+    authController.changePassword
+);
+
 /* =========================================================
    AUTHENTICATION
 ========================================================= */

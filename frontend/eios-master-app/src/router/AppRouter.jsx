@@ -8,6 +8,7 @@ import {
 import MainLayout from "../layouts/MainLayout";
 
 import LoginPage from "../modules/authentication/pages/LoginPage";
+import ChangePasswordPage from "../modules/authentication/pages/ChangePasswordPage";
 import SplashScreen from "../modules/authentication/pages/SplashScreen";
 import ProtectedRoute from "../modules/authentication/routes/ProtectedRoute";
 
@@ -85,6 +86,15 @@ export default function AppRouter() {
         <Route
           path="/login"
           element={<LoginPage />}
+        />
+
+        <Route
+          path="/change-password"
+          element={
+            <ProtectedModule>
+              <ChangePasswordPage />
+            </ProtectedModule>
+          }
         />
 
 <Route

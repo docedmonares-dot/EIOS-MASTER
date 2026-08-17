@@ -62,6 +62,7 @@ export default function EditUserDialog({
   onChange,
   onClose,
   onSubmit,
+  onResetPassword,
 }) {
   if (!open) {
     return null;
@@ -253,6 +254,38 @@ export default function EditUserDialog({
               ))}
             </select>
           </label>
+
+          <div
+            style={{
+              padding: "14px",
+              border: "1px solid #dbe4f0",
+              borderRadius: "10px",
+            }}
+          >
+            <strong>Reset Password</strong>
+            <p style={{ margin: "5px 0 10px" }}>
+              Set a temporary password. The user will be required to change it after signing in.
+            </p>
+            <input
+              name="temporary_password"
+              type="password"
+              value={formData.temporary_password}
+              onChange={onChange}
+              disabled={saving}
+              autoComplete="new-password"
+              placeholder="Temporary password"
+              minLength={8}
+              style={{ width: "100%", minHeight: "42px" }}
+            />
+            <button
+              type="button"
+              onClick={onResetPassword}
+              disabled={saving || !formData.temporary_password}
+              style={{ marginTop: "10px" }}
+            >
+              Reset Password
+            </button>
+          </div>
         </div>
 
         <div

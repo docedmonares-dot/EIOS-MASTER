@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const pool = require("../config/database");
 const authorizationService = require("../services/security/authorizationService");
 
 function getJwtSecret() {
@@ -33,7 +34,7 @@ VERIFY TOKEN
 =========================================================
 */
 
-exports.verifyToken = (req, res, next) => {
+exports.verifyToken = async (req, res, next) => {
 
     const authHeader = req.headers.authorization;
 
@@ -55,10 +56,45 @@ exports.verifyToken = (req, res, next) => {
 
     try {
 
-        req.user = jwt.verify(
+        const decodedUser = jwt.verify(
             token,
             getJwtSecret()
         );
+
+        const userResult = await pool.query(
+            `
+            SELECT
+                user_id,
+                username,
+                email,
+                full_name,
+                status,
+                must_change_password,
+                deleted_at
+            FROM users
+            WHERE user_id = $1
+            LIMIT 1
+            `,
+            [decodedUser.user_id]
+        );
+
+        const currentUser = userResult.rows[0];
+
+        if (
+            !currentUser ||
+            currentUser.deleted_at ||
+            currentUser.status !== "active"
+        ) {
+            return res.status(401).json({
+                success: false,
+                message: "This account is no longer active."
+            });
+        }
+
+        req.user = {
+            ...decodedUser,
+            ...currentUser
+        };
 
         next();
 

@@ -17,6 +17,7 @@ import {
   archiveEnterpriseUser,
   createEnterpriseUser,
   getEnterpriseUsers,
+  resetEnterpriseUserPassword,
   updateEnterpriseUser,
 } from "../../../services/adminUserService";
 
@@ -35,6 +36,7 @@ const EMPTY_EDIT_FORM = {
   email: "",
   role: "ENUMERATOR",
   status: "active",
+  temporary_password: "",
 };
 
 function getErrorMessage(error) {
@@ -172,6 +174,7 @@ export default function UserAdministrationPage() {
         user.legacy_role ||
         "ENUMERATOR",
       status: normalizeStatus(user.status),
+      temporary_password: "",
     });
 
     setEditDialogOpen(true);
@@ -352,6 +355,35 @@ export default function UserAdministrationPage() {
     }
   }
 
+  async function handleResetPassword() {
+    if (editFormData.temporary_password.length < 8) {
+      setDialogError(
+        "Enter a temporary password containing at least eight characters."
+      );
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setDialogError("");
+
+      await resetEnterpriseUserPassword(
+        editFormData.user_id,
+        editFormData.temporary_password
+      );
+
+      setEditDialogOpen(false);
+      setEditFormData(EMPTY_EDIT_FORM);
+      setSuccessMessage(
+        "Temporary password reset successfully. The user must change it at next login."
+      );
+    } catch (error) {
+      setDialogError(getErrorMessage(error));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <MainLayout>
       <section className="administration-dashboard-page">
@@ -443,6 +475,7 @@ export default function UserAdministrationPage() {
         onChange={handleEditInputChange}
         onClose={closeEditDialog}
         onSubmit={handleUpdateUser}
+        onResetPassword={handleResetPassword}
       />
     </MainLayout>
   );

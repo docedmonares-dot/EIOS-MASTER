@@ -50,12 +50,17 @@ export default function LoginForm() {
       setSubmitting(true);
       setError("");
 
-      await login({
+      const result = await login({
         ...formData,
         username,
       });
 
-      navigate(destination, { replace: true });
+      navigate(
+        result.user?.must_change_password
+          ? "/change-password"
+          : destination,
+        { replace: true }
+      );
     } catch (loginError) {
       setError(loginError?.message || "Login failed. Please try again.");
     } finally {
@@ -96,8 +101,8 @@ export default function LoginForm() {
             type="button"
             className="eios-text-button"
             onClick={() =>
-              window.alert(
-                "Password recovery will be connected to the EIOS backend in a later development phase."
+              setError(
+                "Contact your System Administrator to reset your password."
               )
             }
           >

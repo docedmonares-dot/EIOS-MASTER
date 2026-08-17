@@ -64,6 +64,9 @@ export async function login(credentials) {
       email: backendUser.email,
       role: normalizeRole(backendUser.role),
       backendRole: backendUser.role,
+      must_change_password: Boolean(
+        backendUser.must_change_password
+      ),
     };
 
     saveSession(safeUser, token);
@@ -147,4 +150,51 @@ export function hasRole(allowedRoles = []) {
   }
 
   return allowedRoles.includes(user.role);
+}
+
+export async function changePassword({
+  currentPassword,
+  newPassword,
+}) {
+  const token = getToken();
+
+  if (!token) {
+    throw new Error("Your session has expired. Please sign in again.");
+  }
+
+  try {
+    const response = await axios.post(
+      `${API}/auth/change-password`,
+      {
+        current_password: currentPassword,
+        new_password: newPassword,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const currentUser = getCurrentUser();
+    const updatedUser = {
+      ...currentUser,
+      must_change_password: false,
+    };
+
+    localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+
+    return {
+      message: response.data?.message,
+      user: updatedUser,
+    };
+  } catch (error) {
+    const message =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      "Unable to change the password.";
+
+    throw new Error(message, { cause: error });
+  }
 }

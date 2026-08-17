@@ -90,3 +90,18 @@ export async function archiveEnterpriseUser(userId) {
 
   return response.data;
 }
+
+export async function resetEnterpriseUserPassword(
+  userId,
+  temporaryPassword
+) {
+  requireUserId(userId);
+
+  const response = await axios.post(
+    `${API}/admin-users/${userId}/reset-password`,
+    { temporary_password: temporaryPassword },
+    { headers: getAuthorizationHeaders() }
+  );
+
+  return response.data;
+}
