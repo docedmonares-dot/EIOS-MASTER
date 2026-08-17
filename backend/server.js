@@ -171,6 +171,11 @@ app.use(
     require("./src/routes/gpsValidations")
 );
 
+app.use(
+    "/api/notifications",
+    require("./src/routes/notifications")
+);
+
 /* ======================
    MEMORY STORES
 ====================== */

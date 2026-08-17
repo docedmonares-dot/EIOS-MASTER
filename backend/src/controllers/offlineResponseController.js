@@ -677,6 +677,41 @@ exports.syncOfflineResponse = async (req, res) => {
             ]
         );
 
+        if (validationStatus !== "Valid") {
+            await client.query(
+                `
+                INSERT INTO enterprise_notifications
+                (
+                    notification_type,
+                    severity,
+                    title,
+                    message,
+                    target_permission_code,
+                    source_type,
+                    source_id,
+                    action_path
+                )
+                VALUES
+                (
+                    'GPS_VALIDATION',
+                    $1,
+                    'Interview GPS review required',
+                    $2,
+                    'SUPERVISION.MONITOR',
+                    'GPS_VALIDATION',
+                    $3,
+                    '/supervisor'
+                )
+                ON CONFLICT (source_type, source_id) DO NOTHING
+                `,
+                [
+                    validationStatus === "Out of Area" ? "Critical" : "Warning",
+                    `${validationStatus}: ${validationFlags.join(", ")}`,
+                    offline.local_response_id
+                ]
+            );
+        }
+
         /*
          * Mark the queue record as fully synced.
          */
