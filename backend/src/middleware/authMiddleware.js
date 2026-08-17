@@ -70,6 +70,7 @@ exports.verifyToken = async (req, res, next) => {
                 full_name,
                 status,
                 must_change_password,
+                password_changed_at,
                 deleted_at
             FROM users
             WHERE user_id = $1
@@ -88,6 +89,20 @@ exports.verifyToken = async (req, res, next) => {
             return res.status(401).json({
                 success: false,
                 message: "This account is no longer active."
+            });
+        }
+
+        const currentPasswordChangedAt = currentUser.password_changed_at
+            ? new Date(currentUser.password_changed_at).toISOString()
+            : null;
+
+        if (
+            (decodedUser.password_changed_at || null) !==
+            currentPasswordChangedAt
+        ) {
+            return res.status(401).json({
+                success: false,
+                message: "This session was revoked after a password change."
             });
         }
 

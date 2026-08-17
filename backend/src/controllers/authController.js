@@ -234,6 +234,11 @@ exports.login = async (req, res) => {
                     role:
                         roles.length
                             ? roles[0].role_code
+                            : null,
+
+                    password_changed_at:
+                        user.password_changed_at
+                            ? new Date(user.password_changed_at).toISOString()
                             : null
 
                 },
@@ -435,7 +440,7 @@ exports.changePassword = async (req, res) => {
 
         const passwordHash = await bcrypt.hash(newPassword, 12);
 
-        await pool.query(
+        const updateResult = await pool.query(
             `
             UPDATE users
             SET password_hash = $1,
@@ -445,13 +450,48 @@ exports.changePassword = async (req, res) => {
                 locked_until = NULL,
                 updated_at = NOW()
             WHERE user_id = $2
+            RETURNING password_changed_at
             `,
             [passwordHash, req.user.user_id]
         );
 
+        const roles = await authorizationService.getUserRoles(
+            req.user.user_id
+        );
+        const permissions = await authorizationService.getUserPermissions(
+            req.user.user_id
+        );
+        const passwordChangedAt =
+            updateResult.rows[0].password_changed_at;
+        const token = jwt.sign(
+            {
+                user_id: req.user.user_id,
+                username: req.user.username,
+                email: req.user.email,
+                role: roles.length ? roles[0].role_code : null,
+                password_changed_at:
+                    new Date(passwordChangedAt).toISOString()
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: process.env.JWT_EXPIRES_IN || "8h"
+            }
+        );
+
         return res.json({
             success: true,
-            message: "Password changed successfully."
+            message: "Password changed successfully.",
+            token,
+            user: {
+                user_id: req.user.user_id,
+                username: req.user.username,
+                full_name: req.user.full_name,
+                email: req.user.email,
+                role: roles.length ? roles[0].role_code : null,
+                roles,
+                permissions,
+                must_change_password: false
+            }
         });
     } catch (error) {
         console.error("CHANGE PASSWORD ERROR:", error);

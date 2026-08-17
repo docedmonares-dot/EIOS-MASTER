@@ -177,12 +177,20 @@ export async function changePassword({
     );
 
     const currentUser = getCurrentUser();
+    const backendUser = response.data?.user || {};
     const updatedUser = {
       ...currentUser,
+      ...backendUser,
+      id: backendUser.user_id || currentUser?.id,
+      role: normalizeRole(backendUser.role || currentUser?.role),
       must_change_password: false,
     };
 
-    localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+    if (!response.data?.token) {
+      throw new Error("The server did not return a renewed session.");
+    }
+
+    saveSession(updatedUser, response.data.token);
 
     return {
       message: response.data?.message,
