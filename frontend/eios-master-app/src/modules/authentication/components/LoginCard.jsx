@@ -24,14 +24,6 @@ export default function LoginCard() {
 
       <LoginForm />
 
-      <div className="eios-development-access">
-        <strong>Development access</strong>
-
-        <span>Administrator: admin / admin123</span>
-        <span>Supervisor: supervisor / supervisor123</span>
-        <span>Enumerator: enumerator / enumerator123</span>
-      </div>
-
       <div className="eios-login-security">
         <span className="eios-security-indicator" />
 
