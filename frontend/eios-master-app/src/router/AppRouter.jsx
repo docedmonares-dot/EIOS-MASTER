@@ -23,6 +23,7 @@ import UserAdministrationPage from "../modules/administration/pages/UserAdminist
 import FieldEnumeratorWorkspacePage from "../modules/field-operations/pages/FieldEnumeratorWorkspacePage";
 import DeploymentOperationsPage from "../modules/field-operations/pages/DeploymentOperationsPage";
 import AnalyticsWorkspacePage from "../modules/analytics/pages/AnalyticsWorkspacePage";
+import GisIntelligencePage from "../modules/gis/pages/GisIntelligencePage";
 
 import EnterpriseQuestionEditorPage from "../modules/enterprise-question-editor/pages/EnterpriseQuestionEditorPage";
 
@@ -234,10 +235,7 @@ export default function AppRouter() {
           path="/gis"
           element={
             <ProtectedModule>
-              <ModulePage
-                title="GIS"
-                description="Visualize geographic coverage, field activity, and location-based intelligence."
-              />
+              <GisIntelligencePage />
             </ProtectedModule>
           }
         />

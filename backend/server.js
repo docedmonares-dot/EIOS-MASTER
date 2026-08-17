@@ -156,6 +156,11 @@ app.use(
     require("./src/routes/analytics")
 );
 
+app.use(
+    "/api/field-map",
+    require("./src/routes/fieldMap")
+);
+
 /* ======================
    MEMORY STORES
 ====================== */
