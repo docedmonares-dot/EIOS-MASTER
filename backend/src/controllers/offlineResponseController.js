@@ -524,6 +524,159 @@ exports.syncOfflineResponse = async (req, res) => {
                 ]
             );
 
+        const latitude = Number(
+            offline.gps_json?.latitude
+        );
+        const longitude = Number(
+            offline.gps_json?.longitude
+        );
+        const accuracy = Number(
+            offline.gps_json?.accuracy
+        );
+        const hasGps =
+            Number.isFinite(latitude) &&
+            Number.isFinite(longitude);
+
+        const assignmentResult = await client.query(
+            `
+            SELECT
+                assignment_id,
+                gps_polygon,
+                gps_radius_center,
+                gps_radius_meters
+            FROM area_assignments
+            WHERE deployment_id = $1
+              AND personnel_id = $2
+              AND assignment_status IN ('Assigned', 'In Progress', 'Completed')
+            ORDER BY created_at DESC
+            LIMIT 1
+            `,
+            [offline.deployment_id, offline.enumerator_id]
+        );
+        const assignment = assignmentResult.rows[0] || null;
+        const hasBoundary = Boolean(
+            assignment?.gps_polygon ||
+            (
+                assignment?.gps_radius_center &&
+                Number(assignment?.gps_radius_meters) > 0
+            )
+        );
+
+        let insideAssignedArea = null;
+        let distanceFromArea = null;
+
+        if (hasGps && hasBoundary) {
+            const validationResult = await client.query(
+                `
+                SELECT
+                    CASE
+                        WHEN $3::geometry IS NOT NULL
+                        THEN ST_Covers(
+                            $3::geometry,
+                            ST_SetSRID(ST_MakePoint($1, $2), 4326)
+                        )
+                        ELSE ST_DWithin(
+                            $4::geometry::geography,
+                            ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
+                            $5
+                        )
+                    END AS inside_area,
+                    CASE
+                        WHEN $3::geometry IS NOT NULL THEN
+                            ST_Distance(
+                                ST_Boundary($3::geometry)::geography,
+                                ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
+                            )
+                        ELSE
+                            GREATEST(
+                                ST_Distance(
+                                    $4::geometry::geography,
+                                    ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
+                                ) - $5,
+                                0
+                            )
+                    END AS distance_from_area
+                `,
+                [
+                    longitude,
+                    latitude,
+                    assignment.gps_polygon,
+                    assignment.gps_radius_center,
+                    Number(assignment.gps_radius_meters || 0)
+                ]
+            );
+            insideAssignedArea = validationResult.rows[0]?.inside_area ?? false;
+            distanceFromArea = validationResult.rows[0]?.distance_from_area ?? null;
+        }
+
+        const validationStatus = !hasGps
+            ? "Missing"
+            : !hasBoundary
+                ? "Warning"
+                : insideAssignedArea
+                    ? "Valid"
+                    : "Out of Area";
+        const validationFlags = !hasGps
+            ? [offline.gps_json?.reason || "GPS_MISSING"]
+            : !hasBoundary
+                ? ["NO_GEOFENCE_CONFIGURED"]
+                : insideAssignedArea
+                    ? []
+                    : ["OUTSIDE_ASSIGNED_AREA"];
+
+        await client.query(
+            `
+            INSERT INTO gps_validation_logs
+            (
+                deployment_id,
+                assignment_id,
+                personnel_id,
+                local_response_id,
+                gps_point,
+                gps_accuracy,
+                inside_assigned_area,
+                gps_accuracy_passed,
+                distance_from_area,
+                gps_validation_status,
+                gps_validation_flags
+            )
+            VALUES
+            (
+                $1, $2, $3, $4,
+                CASE WHEN $5::boolean
+                    THEN ST_SetSRID(
+                        ST_MakePoint($6::double precision, $7::double precision),
+                        4326
+                    )
+                    ELSE NULL
+                END,
+                $8::numeric,
+                $9::boolean,
+                CASE
+                    WHEN $8::numeric IS NULL THEN NULL
+                    ELSE $8::numeric <= 100
+                END,
+                $10::numeric,
+                $11::varchar,
+                $12::jsonb
+            )
+            `,
+            [
+                offline.deployment_id,
+                assignment?.assignment_id || null,
+                offline.enumerator_id,
+                offline.local_response_id,
+                hasGps,
+                hasGps ? longitude : null,
+                hasGps ? latitude : null,
+                Number.isFinite(accuracy) ? accuracy : null,
+                insideAssignedArea,
+                distanceFromArea,
+                validationStatus,
+                JSON.stringify(validationFlags)
+            ]
+        );
+
         /*
          * Mark the queue record as fully synced.
          */

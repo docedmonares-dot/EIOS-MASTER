@@ -21,6 +21,46 @@ import { PreviewQuestion } from "../../survey-preview/components";
 import { isAnswerEmpty } from "../../survey-engine/runtime/questionTypeRegistry";
 import "../../survey-preview/styles/preview.css";
 
+function captureInterviewLocation() {
+  if (!navigator.geolocation) {
+    return Promise.resolve({
+      status: "unavailable",
+      reason: "GEOLOCATION_NOT_SUPPORTED",
+      captured_at: new Date().toISOString(),
+    });
+  }
+
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => resolve({
+        status: "captured",
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy,
+        altitude: position.coords.altitude,
+        heading: position.coords.heading,
+        speed: position.coords.speed,
+        captured_at: new Date(position.timestamp).toISOString(),
+      }),
+      (error) => resolve({
+        status: "unavailable",
+        reason: [
+          "UNKNOWN",
+          "PERMISSION_DENIED",
+          "POSITION_UNAVAILABLE",
+          "TIMEOUT",
+        ][error.code] || "UNKNOWN",
+        captured_at: new Date().toISOString(),
+      }),
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 30000,
+      }
+    );
+  });
+}
+
 export default function FieldInterviewRuntimePage() {
   const {
     deploymentId,
@@ -247,6 +287,9 @@ export default function FieldInterviewRuntimePage() {
       const respondentCode =
         `RESP-${Date.now()}`;
 
+      const interviewLocation =
+        await captureInterviewLocation();
+
       const payload = {
         local_response_id:
           localResponseId,
@@ -268,7 +311,7 @@ export default function FieldInterviewRuntimePage() {
         answers_json:
           answersByQuestionId,
 
-        gps_json: {},
+        gps_json: interviewLocation,
 
         qc_precheck_json: {
           logic_runtime:
