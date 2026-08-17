@@ -255,26 +255,8 @@ export default function FieldEnumeratorWorkspacePage() {
       [offlineResponses]
     );
 
-  const syncedResponses =
-    useMemo(
-      () =>
-        offlineResponses.filter(
-          (response) =>
-            String(
-              response?.sync_status || ""
-            )
-              .trim()
-              .toLowerCase() ===
-            "synced"
-        ),
-      [offlineResponses]
-    );
-
   const pendingSyncCount =
     pendingResponses.length;
-
-  const completedCount =
-    syncedResponses.length;
 
   const activeAreaAssignment =
     useMemo(

@@ -24,6 +24,7 @@ export default function EEUIPanel({
   return (
     <section
       className={classes}
+      data-collapsible={collapsible || undefined}
       {...props}
     >
       {(title || subtitle || headerActions) && (

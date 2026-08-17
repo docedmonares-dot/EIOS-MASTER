@@ -1,5 +1,6 @@
-import React, {
+import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -108,7 +109,7 @@ export function AuthProvider({ children }) {
     setUser(nextUser);
   };
 
-  const hasRole = (allowedRoles = []) => {
+  const hasRole = useCallback((allowedRoles = []) => {
     if (!user) {
       return false;
     }
@@ -123,7 +124,7 @@ export function AuthProvider({ children }) {
       (role) =>
         String(role || "").toLowerCase() === normalizedUserRole
     );
-  };
+  }, [user]);
 
   const value = useMemo(
     () => ({
@@ -135,7 +136,7 @@ export function AuthProvider({ children }) {
       updateUser,
       hasRole,
     }),
-    [user, authLoading]
+    [user, authLoading, hasRole]
   );
 
   return (

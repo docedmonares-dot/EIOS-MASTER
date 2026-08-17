@@ -230,15 +230,12 @@ const {
   logicRecords,
   selectedLogic,
   loading: logicLoading,
-  saving: logicSaving,
-  deleting: logicDeleting,
   error: logicError,
   loadLogicByQuestionId,
   loadLogicById,
   createLogic,
   updateLogic,
   removeLogic,
-  clearSelection: clearLogicSelection,
 } = useEnterpriseQuestionLogic();
 
 const {
