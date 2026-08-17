@@ -10,6 +10,7 @@ import {
 
 import MainLayout from "../../../layouts/MainLayout";
 import { createUuid } from "../../../utils/createUuid";
+import { captureDeviceLocation } from "../../../utils/captureDeviceLocation";
 import {
   createOfflineResponse,
 } from "../../../services/offlineResponseService";
@@ -21,46 +22,6 @@ import {
 import { PreviewQuestion } from "../../survey-preview/components";
 import { isAnswerEmpty } from "../../survey-engine/runtime/questionTypeRegistry";
 import "../../survey-preview/styles/preview.css";
-
-function captureInterviewLocation() {
-  if (!navigator.geolocation) {
-    return Promise.resolve({
-      status: "unavailable",
-      reason: "GEOLOCATION_NOT_SUPPORTED",
-      captured_at: new Date().toISOString(),
-    });
-  }
-
-  return new Promise((resolve) => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => resolve({
-        status: "captured",
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        accuracy: position.coords.accuracy,
-        altitude: position.coords.altitude,
-        heading: position.coords.heading,
-        speed: position.coords.speed,
-        captured_at: new Date(position.timestamp).toISOString(),
-      }),
-      (error) => resolve({
-        status: "unavailable",
-        reason: [
-          "UNKNOWN",
-          "PERMISSION_DENIED",
-          "POSITION_UNAVAILABLE",
-          "TIMEOUT",
-        ][error.code] || "UNKNOWN",
-        captured_at: new Date().toISOString(),
-      }),
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 30000,
-      }
-    );
-  });
-}
 
 export default function FieldInterviewRuntimePage() {
   const {
@@ -289,7 +250,7 @@ export default function FieldInterviewRuntimePage() {
         `RESP-${Date.now()}`;
 
       const interviewLocation =
-        await captureInterviewLocation();
+        await captureDeviceLocation();
 
       const payload = {
         local_response_id:

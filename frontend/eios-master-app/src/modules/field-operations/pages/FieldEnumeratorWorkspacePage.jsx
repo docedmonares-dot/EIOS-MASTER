@@ -10,8 +10,11 @@ import {
 } from "react-router-dom";
 
 import {
+  AlertTriangle,
+  CheckCircle2,
   ClipboardList,
   CloudOff,
+  LoaderCircle,
   MapPin,
   PlayCircle,
   RefreshCw,
@@ -32,6 +35,7 @@ import {
 import {
   getOwnAreaAssignments,
 } from "../../../services/areaAssignmentService";
+import { captureDeviceLocation } from "../../../utils/captureDeviceLocation";
 
 export default function FieldEnumeratorWorkspacePage() {
   const { user } = useAuth();
@@ -98,6 +102,21 @@ export default function FieldEnumeratorWorkspacePage() {
     areaAssignmentError,
     setAreaAssignmentError,
   ] = useState("");
+
+  const [gpsDiagnostic, setGpsDiagnostic] = useState({
+    status: "idle",
+  });
+
+  async function checkGpsStatus() {
+    setGpsDiagnostic({ status: "checking" });
+
+    const result = await captureDeviceLocation({
+      timeout: 15000,
+      maximumAge: 0,
+    });
+
+    setGpsDiagnostic(result);
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -826,6 +845,8 @@ export default function FieldEnumeratorWorkspacePage() {
 
           <button
             type="button"
+            onClick={checkGpsStatus}
+            disabled={gpsDiagnostic.status === "checking"}
             style={{
               minHeight: "58px",
               display: "inline-flex",
@@ -835,11 +856,21 @@ export default function FieldEnumeratorWorkspacePage() {
               border: "1px solid #cbd5e1",
               borderRadius: "14px",
               background: "#ffffff",
+              cursor:
+                gpsDiagnostic.status === "checking"
+                  ? "wait"
+                  : "pointer",
               fontWeight: 700,
             }}
           >
-            <MapPin size={21} />
-            GPS Status
+            {gpsDiagnostic.status === "checking" ? (
+              <LoaderCircle size={21} />
+            ) : (
+              <MapPin size={21} />
+            )}
+            {gpsDiagnostic.status === "checking"
+              ? "Checking GPS..."
+              : "GPS Status"}
           </button>
 
 <div
@@ -894,6 +925,83 @@ fontWeight: 700,
             My Profile
           </button>
         </div>
+
+        {gpsDiagnostic.status !== "idle" &&
+          gpsDiagnostic.status !== "checking" && (
+            <div
+              role="status"
+              aria-live="polite"
+              style={{
+                marginTop: "14px",
+                padding: "16px",
+                border: `1px solid ${
+                  gpsDiagnostic.status === "captured"
+                    ? "#86efac"
+                    : "#fbbf24"
+                }`,
+                borderRadius: "14px",
+                background:
+                  gpsDiagnostic.status === "captured"
+                    ? "#f0fdf4"
+                    : "#fffbeb",
+                color:
+                  gpsDiagnostic.status === "captured"
+                    ? "#166534"
+                    : "#92400e",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "9px",
+                  fontWeight: 800,
+                }}
+              >
+                {gpsDiagnostic.status === "captured" ? (
+                  <CheckCircle2 size={20} />
+                ) : (
+                  <AlertTriangle size={20} />
+                )}
+                {gpsDiagnostic.status === "captured"
+                  ? "GPS location available"
+                  : "GPS location unavailable"}
+              </div>
+
+              {gpsDiagnostic.status === "captured" ? (
+                <div style={{ marginTop: "9px", lineHeight: 1.6 }}>
+                  <div>
+                    Coordinates: {gpsDiagnostic.latitude.toFixed(6)}, {" "}
+                    {gpsDiagnostic.longitude.toFixed(6)}
+                  </div>
+                  <div>
+                    Accuracy: {Math.round(gpsDiagnostic.accuracy)} meters
+                  </div>
+                  <div>
+                    Captured: {new Date(
+                      gpsDiagnostic.captured_at
+                    ).toLocaleString()}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ marginTop: "9px", lineHeight: 1.6 }}>
+                  <div>Reason: {gpsDiagnostic.reason}</div>
+                  {!gpsDiagnostic.secure_context && (
+                    <div>
+                      Mobile browsers require production HTTPS for GPS.
+                      The temporary local HTTP test may block location access.
+                    </div>
+                  )}
+                  {gpsDiagnostic.reason === "PERMISSION_DENIED" && (
+                    <div>
+                      Allow Location for the EIOS site in browser settings,
+                      then check again.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
       </section>
     </MainLayout>
   );
