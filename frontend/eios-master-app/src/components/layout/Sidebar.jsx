@@ -2,7 +2,6 @@ import {
   BarChart3,
   ClipboardCheck,
   ClipboardList,
-  Database,
   Gauge,
   Globe2,
   Home,
@@ -82,11 +81,6 @@ const MENU_BY_ROLE = {
       label: "GIS Intelligence",
       path: "/gis",
       icon: Map,
-    },
-    {
-      label: "Repository",
-      path: "/repository",
-      icon: Database,
     },
   ],
 

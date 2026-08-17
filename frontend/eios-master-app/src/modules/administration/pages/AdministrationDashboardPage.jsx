@@ -1,13 +1,8 @@
 import {
-  Activity,
   BriefcaseBusiness,
-  Building2,
   Database,
   FileCog,
   Globe2,
-  KeyRound,
-  Settings,
-  ShieldCheck,
   Users,
 } from "lucide-react";
 
@@ -24,25 +19,11 @@ const administrationModules = [
     path: "/administration/enterprise-foundation",
   },
   {
-    title: "Organizations",
-    description:
-      "Manage organizations, institutional units, offices, and enterprise ownership.",
-    icon: Building2,
-    path: "/administration/organizations",
-  },
-  {
     title: "Users",
     description:
       "Create, update, activate, deactivate, and administer enterprise user accounts.",
     icon: Users,
     path: "/administration/users",
-  },
-  {
-    title: "Roles and Permissions",
-    description:
-      "Configure dynamic roles, access rights, and role-based permissions.",
-    icon: ShieldCheck,
-    path: "/administration/roles",
   },
   {
     title: "Geographic Master",
@@ -57,27 +38,6 @@ const administrationModules = [
       "Monitor imports, exports, reports, analytics, AI processing, backups, synchronization, and other background jobs.",
     icon: BriefcaseBusiness,
     path: "/administration/enterprise-jobs",
-  },
-  {
-    title: "Enterprise Settings",
-    description:
-      "Configure field operations, GPS, synchronization, platform, and survey defaults.",
-    icon: Settings,
-    path: "/administration/settings",
-  },
-  {
-    title: "Security",
-    description:
-      "Manage authentication, password rules, sessions, and security controls.",
-    icon: KeyRound,
-    path: "/administration/security",
-  },
-  {
-    title: "Audit Trail",
-    description:
-      "Review material user actions, configuration changes, and system events.",
-    icon: Activity,
-    path: "/administration/audit",
   },
   {
     title: "System Health",
