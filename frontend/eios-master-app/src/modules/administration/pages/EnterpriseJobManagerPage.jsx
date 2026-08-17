@@ -3,7 +3,6 @@ import { useCallback, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 
 import {
-  createEnterpriseTestJob,
   getEnterpriseJobSummary,
   getEnterpriseJobTypes,
   getRecentEnterpriseJobs,
@@ -26,9 +25,7 @@ export default function EnterpriseJobManagerPage() {
   const [jobTypes, setJobTypes] = useState([]);
   const [recentJobs, setRecentJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [creatingTestJob, setCreatingTestJob] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
 
   const loadEnterpriseJobs = useCallback(async () => {
     try {
@@ -84,35 +81,6 @@ export default function EnterpriseJobManagerPage() {
     loadEnterpriseJobs();
   }, [loadEnterpriseJobs]);
 
-  async function handleCreateTestJob() {
-    try {
-      setCreatingTestJob(true);
-      setErrorMessage("");
-      setSuccessMessage("");
-
-      const createdJob = await createEnterpriseTestJob();
-
-      setSuccessMessage(
-        `${createdJob?.job_name || "Test job"} was created successfully.`
-      );
-
-      await loadEnterpriseJobs();
-    } catch (error) {
-      console.error(
-        "Test enterprise job creation failed:",
-        error
-      );
-
-      setErrorMessage(
-        error.response?.data?.message ||
-          error.message ||
-          "Unable to create the controlled test job."
-      );
-    } finally {
-      setCreatingTestJob(false);
-    }
-  }
-
   return (
     <MainLayout>
       <section className="enterprise-job-page">
@@ -123,35 +91,25 @@ export default function EnterpriseJobManagerPage() {
             <h1>Enterprise Job Manager</h1>
 
             <p>
-              Monitor, schedule, execute, and audit enterprise
-              background jobs powering imports, exports, analytics,
-              reports, synchronization, artificial intelligence,
-              backups, notifications, and other long-running
-              enterprise processes.
+              Monitor registered background job types, queue status,
+              worker readiness, progress, and auditable processing
+              activity across enterprise services.
             </p>
           </div>
 
           <button
             type="button"
-            onClick={handleCreateTestJob}
-            disabled={creatingTestJob}
+            onClick={loadEnterpriseJobs}
+            disabled={loading}
             className="enterprise-job-test-button"
           >
-            {creatingTestJob
-              ? "Creating Test Job..."
-              : "Create Test Job"}
+            {loading ? "Refreshing..." : "Refresh"}
           </button>
         </div>
 
         {errorMessage && (
           <div className="enterprise-job-state enterprise-job-state--error">
             {errorMessage}
-          </div>
-        )}
-
-        {successMessage && (
-          <div className="enterprise-job-state enterprise-job-state--success">
-            {successMessage}
           </div>
         )}
 
@@ -219,7 +177,7 @@ export default function EnterpriseJobManagerPage() {
           <div className="enterprise-job-panel__header">
             <div>
               <span>Job Types</span>
-              <h2>Enterprise Processing Capabilities</h2>
+              <h2>Registered Processing Capabilities</h2>
             </div>
 
             <strong>

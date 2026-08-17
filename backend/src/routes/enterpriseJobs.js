@@ -54,17 +54,4 @@ router.get(
     controller.getRecentJobs
 );
 
-/* =========================================================
-   CREATE CONTROLLED TEST JOB
-========================================================= */
-
-router.post(
-    "/test",
-    verifyToken,
-    requirePermission(
-        PERMISSIONS.OPERATIONS.MANAGE
-    ),
-    controller.createTestJob
-);
-
 module.exports = router;

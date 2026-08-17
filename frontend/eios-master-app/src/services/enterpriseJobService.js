@@ -50,14 +50,3 @@ export async function getRecentEnterpriseJobs(limit = 20) {
   return response.data.data;
 }
 
-export async function createEnterpriseTestJob() {
-  const response = await axios.post(
-    `${API}/enterprise-jobs/test`,
-    {},
-    {
-      headers: getAuthorizationHeaders(),
-    }
-  );
-
-  return response.data.data;
-}
