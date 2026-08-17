@@ -48,3 +48,22 @@ export async function getEnterpriseSettings() {
 
   return response.data;
 }
+
+export async function updateEnterpriseSetting(
+  settingId,
+  settingValue,
+  changeReason
+) {
+  const response = await axios.patch(
+    `${API}/enterprise-foundation/settings/${settingId}`,
+    {
+      setting_value: settingValue,
+      change_reason: changeReason,
+    },
+    {
+      headers: getAuthorizationHeaders(),
+    }
+  );
+
+  return response.data;
+}

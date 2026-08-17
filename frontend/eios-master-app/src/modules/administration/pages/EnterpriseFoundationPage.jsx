@@ -5,6 +5,7 @@ import {
   getEnterprisePrinciples,
   getEnterpriseProfile,
   getEnterpriseSettings,
+  updateEnterpriseSetting,
 } from "../../../services/enterpriseFoundationService";
 
 export default function EnterpriseFoundationPage() {
@@ -13,6 +14,11 @@ export default function EnterpriseFoundationPage() {
   const [settings, setSettings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [editingSettingId, setEditingSettingId] = useState(null);
+  const [settingValue, setSettingValue] = useState("");
+  const [changeReason, setChangeReason] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     async function loadEnterpriseFoundation() {
@@ -52,6 +58,109 @@ export default function EnterpriseFoundationPage() {
     loadEnterpriseFoundation();
   }, []);
 
+  function beginEditing(setting) {
+    setEditingSettingId(setting.setting_id);
+    setSettingValue(setting.setting_value ?? "");
+    setChangeReason("");
+    setErrorMessage("");
+    setSuccessMessage("");
+  }
+
+  function cancelEditing() {
+    setEditingSettingId(null);
+    setSettingValue("");
+    setChangeReason("");
+  }
+
+  async function saveSetting(setting) {
+    try {
+      setSaving(true);
+      setErrorMessage("");
+      setSuccessMessage("");
+
+      const result = await updateEnterpriseSetting(
+        setting.setting_id,
+        settingValue,
+        changeReason
+      );
+
+      setSettings((currentSettings) =>
+        currentSettings.map((item) =>
+          item.setting_id === setting.setting_id
+            ? {
+                ...item,
+                setting_value: result.data.setting_value,
+              }
+            : item
+        )
+      );
+      setSuccessMessage(result.message);
+      cancelEditing();
+    } catch (error) {
+      setErrorMessage(
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to update enterprise setting."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function renderSettingControl(setting) {
+    const allowedValues = Array.isArray(setting.allowed_values)
+      ? setting.allowed_values
+      : [];
+
+    if (setting.value_type === "boolean") {
+      return (
+        <select
+          value={settingValue}
+          onChange={(event) => setSettingValue(event.target.value)}
+        >
+          <option value="true">Enabled</option>
+          <option value="false">Disabled</option>
+        </select>
+      );
+    }
+
+    if (allowedValues.length > 0) {
+      return (
+        <select
+          value={settingValue}
+          onChange={(event) => setSettingValue(event.target.value)}
+        >
+          {allowedValues.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </select>
+      );
+    }
+
+    const inputType =
+      setting.value_type === "integer" ||
+      setting.value_type === "decimal"
+        ? "number"
+        : setting.value_type === "date"
+          ? "date"
+          : setting.value_type === "datetime"
+            ? "datetime-local"
+            : "text";
+
+    return (
+      <input
+        type={inputType}
+        value={settingValue}
+        min={setting.validation_rules?.minimum}
+        max={setting.validation_rules?.maximum}
+        step={setting.value_type === "integer" ? "1" : undefined}
+        onChange={(event) => setSettingValue(event.target.value)}
+      />
+    );
+  }
+
   return (
     <MainLayout>
       <section className="enterprise-foundation-page">
@@ -80,7 +189,13 @@ export default function EnterpriseFoundationPage() {
           </div>
         )}
 
-        {!loading && !errorMessage && (
+        {!loading && successMessage && (
+          <div className="enterprise-foundation-state enterprise-foundation-state--success">
+            {successMessage}
+          </div>
+        )}
+
+        {!loading && (
           <>
             <section className="enterprise-foundation-card">
               <div className="enterprise-foundation-card__header">
@@ -179,9 +294,48 @@ export default function EnterpriseFoundationPage() {
                       </p>
                     </div>
 
-                    <div className="enterprise-setting-row__value">
-                      {setting.setting_value}
-                    </div>
+                    {editingSettingId === setting.setting_id ? (
+                      <div className="enterprise-setting-editor">
+                        {renderSettingControl(setting)}
+
+                        <input
+                          type="text"
+                          value={changeReason}
+                          placeholder="Reason for this change"
+                          onChange={(event) => setChangeReason(event.target.value)}
+                        />
+
+                        <div className="enterprise-setting-editor__actions">
+                          <button
+                            type="button"
+                            onClick={() => saveSetting(setting)}
+                            disabled={saving || !changeReason.trim()}
+                          >
+                            {saving ? "Saving..." : "Save"}
+                          </button>
+                          <button
+                            type="button"
+                            className="enterprise-setting-editor__cancel"
+                            onClick={cancelEditing}
+                            disabled={saving}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="enterprise-setting-row__value">
+                        <strong>{setting.setting_value}</strong>
+                        {setting.is_editable && (
+                          <button
+                            type="button"
+                            onClick={() => beginEditing(setting)}
+                          >
+                            Edit
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

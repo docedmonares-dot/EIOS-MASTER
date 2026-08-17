@@ -54,4 +54,13 @@ router.get(
     controller.getEnterpriseSettings
 );
 
+router.patch(
+    "/settings/:settingId",
+    verifyToken,
+    requirePermission(
+        PERMISSIONS.IAM.USER.UPDATE
+    ),
+    controller.updateEnterpriseSetting
+);
+
 module.exports = router;
