@@ -1,77 +1,8 @@
 import { useEffect, useState } from "react";
 
-import {
-  BarChart3,
-  Database,
-  FileUp,
-  Globe2,
-  Layers3,
-  Map,
-  Network,
-  Search,
-  ShieldCheck,
-} from "lucide-react";
-
 import MainLayout from "../../../layouts/MainLayout";
 import GeographicHierarchyBrowser from "../components/GeographicHierarchyBrowser";
 import { getGeographicSummary } from "../../../services/geographicMasterService";
-
-const geographicModules = [
-  {
-    title: "Geographic Overview",
-    description:
-      "View countries, geographic unit types, official units, and operational areas.",
-    icon: Globe2,
-  },
-  {
-    title: "PSGC Import Center",
-    description:
-      "Import and validate official Philippine Standard Geographic Code datasets.",
-    icon: FileUp,
-  },
-  {
-    title: "Hierarchy Browser",
-    description:
-      "Browse the parent-child structure from country to barangay and local operational areas.",
-    icon: Network,
-  },
-  {
-    title: "Geographic Search",
-    description:
-      "Search official units using names, aliases, codes, classifications, and hierarchy.",
-    icon: Search,
-  },
-  {
-    title: "Operational Groups",
-    description:
-      "Create survey areas, deployment zones, research clusters, and custom geographic groupings.",
-    icon: Layers3,
-  },
-  {
-    title: "GIS Layers",
-    description:
-      "Manage coordinates, boundaries, polygons, centroids, maps, and geographic overlays.",
-    icon: Map,
-  },
-  {
-    title: "Geographic Intelligence",
-    description:
-      "Maintain demographic, household, electoral, economic, environmental, and risk indicators.",
-    icon: BarChart3,
-  },
-  {
-    title: "Data Validation",
-    description:
-      "Detect duplicate codes, missing parents, invalid hierarchy levels, and inconsistent records.",
-    icon: ShieldCheck,
-  },
-  {
-    title: "Geographic Services",
-    description:
-      "Monitor PGIE APIs, lookup services, coverage validation, and integration readiness.",
-    icon: Database,
-  },
-];
 
 export default function GeographicMasterPage() {
   const [summary, setSummary] = useState({
@@ -136,9 +67,9 @@ export default function GeographicMasterPage() {
           <h1>Philippine Geographic Intelligence Engine</h1>
 
           <p>
-            Central geographic administration for official PSGC data,
-            operational areas, GIS layers, geographic intelligence,
-            and enterprise-wide location services.
+            Browse the official PSGC hierarchy used by survey design,
+            deployment, field interviews, analytics, and enterprise-wide
+            location services.
           </p>
         </div>
 
@@ -208,31 +139,7 @@ export default function GeographicMasterPage() {
           </article>
         </div>
 
-        <div className="geographic-master-page__grid">
-          {geographicModules.map((module) => {
-            const Icon = module.icon;
-
-            return (
-              <article
-                key={module.title}
-                className="geographic-master-card"
-              >
-                <div className="geographic-master-card__icon">
-                  <Icon size={24} />
-                </div>
-
-                <div>
-                  <h2>{module.title}</h2>
-
-                  <p>{module.description}</p>
-
-                  <span>Coming next</span>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-<GeographicHierarchyBrowser />
+        <GeographicHierarchyBrowser />
 
       </section>
     </MainLayout>
