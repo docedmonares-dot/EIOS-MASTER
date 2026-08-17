@@ -166,6 +166,11 @@ app.use(
     require("./src/routes/systemHealth")
 );
 
+app.use(
+    "/api/gps-validations",
+    require("./src/routes/gpsValidations")
+);
+
 /* ======================
    MEMORY STORES
 ====================== */
