@@ -21,6 +21,7 @@ import EnterpriseJobManagerPage from "../modules/administration/pages/Enterprise
 import UserAdministrationPage from "../modules/administration/pages/UserAdministrationPage";
 
 import FieldEnumeratorWorkspacePage from "../modules/field-operations/pages/FieldEnumeratorWorkspacePage";
+import DeploymentOperationsPage from "../modules/field-operations/pages/DeploymentOperationsPage";
 
 import EnterpriseQuestionEditorPage from "../modules/enterprise-question-editor/pages/EnterpriseQuestionEditorPage";
 
@@ -192,10 +193,7 @@ export default function AppRouter() {
           path="/deployment"
           element={
             <ProtectedModule>
-              <ModulePage
-                title="Deployment"
-                description="Plan and manage field deployments, assignments, and operational coverage."
-              />
+              <DeploymentOperationsPage title="Operations Control" />
             </ProtectedModule>
           }
         />
@@ -213,10 +211,7 @@ export default function AppRouter() {
           path="/supervisor"
           element={
             <ProtectedModule>
-              <ModulePage
-                title="Supervisor"
-                description="Monitor field teams, review submissions, and manage quality control."
-              />
+              <DeploymentOperationsPage title="Supervisor Field Operations" />
             </ProtectedModule>
           }
         />

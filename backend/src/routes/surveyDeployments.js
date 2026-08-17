@@ -4,8 +4,11 @@ const router = express.Router();
 
 const {
     verifyToken,
-    requireRole
+    requireAnyPermission,
+    requirePermission
 } = require("../middleware/authMiddleware");
+
+const PERMISSIONS = require("../security/permissions");
 
 const controller = require(
     "../controllers/surveyDeploymentController"
@@ -14,10 +17,10 @@ const controller = require(
 router.get(
     "/",
     verifyToken,
-    requireRole(
-        "Super Admin",
-        "Admin",
-        "Supervisor"
+    requireAnyPermission(
+        PERMISSIONS.OPERATIONS.MANAGE,
+        PERMISSIONS.SUPERVISION.MONITOR,
+        PERMISSIONS.EXECUTIVE.VIEW
     ),
     controller.getAllDeployments
 );
@@ -25,10 +28,10 @@ router.get(
 router.get(
     "/:id",
     verifyToken,
-    requireRole(
-        "Super Admin",
-        "Admin",
-        "Supervisor"
+    requireAnyPermission(
+        PERMISSIONS.OPERATIONS.MANAGE,
+        PERMISSIONS.SUPERVISION.MONITOR,
+        PERMISSIONS.EXECUTIVE.VIEW
     ),
     controller.getDeploymentById
 );
@@ -36,9 +39,8 @@ router.get(
 router.post(
     "/",
     verifyToken,
-    requireRole(
-        "Super Admin",
-        "Admin"
+    requirePermission(
+        PERMISSIONS.OPERATIONS.MANAGE
     ),
     controller.createDeployment
 );
@@ -46,9 +48,8 @@ router.post(
 router.post(
     "/:id/assign-enumerator",
     verifyToken,
-    requireRole(
-        "Super Admin",
-        "Admin"
+    requirePermission(
+        PERMISSIONS.OPERATIONS.MANAGE
     ),
     controller.assignDeploymentToEnumerator
 );
