@@ -1,4 +1,4 @@
-export default function ExecutiveOverview({ summary }) {
+export default function ExecutiveOverview({ summary, online = true }) {
   return (
     <section className="executive-overview">
       <div className="overview-card">
@@ -13,7 +13,7 @@ export default function ExecutiveOverview({ summary }) {
 
       <div className="overview-card">
         <span className="overview-label">
-          Active Deployments
+          Operational Deployments
         </span>
 
         <h2 className="overview-value">
@@ -57,7 +57,7 @@ export default function ExecutiveOverview({ summary }) {
         </span>
 
         <h2 className="overview-value status-online">
-          ONLINE
+          {online ? "ONLINE" : "ATTENTION"}
         </h2>
       </div>
     </section>

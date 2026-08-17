@@ -12,8 +12,8 @@ import {
 
 import LiveOperationsMap from "./LiveOperationsMap";
 
-export default function ExecutiveCommandCenter({ summary = {} }) {
-  const activeDeployments = summary.active_deployments ?? 0;
+export default function ExecutiveCommandCenter({ summary = {}, jobSummary = {}, online = true }) {
+  const totalDeployments = summary.total_deployments ?? 0;
   const activeEnumerators = summary.active_enumerators ?? 0;
   const todayAttendance = summary.today_attendance ?? 0;
 
@@ -58,8 +58,8 @@ export default function ExecutiveCommandCenter({ summary = {} }) {
             <CheckCircle2 size={18} />
 
             <div>
-              <strong>No critical incident</strong>
-              <span>All monitored operations are stable.</span>
+              <strong>{jobSummary.failed_jobs ? `${jobSummary.failed_jobs} failed jobs` : "No failed enterprise jobs"}</strong>
+              <span>{jobSummary.failed_jobs ? "Technical review is required." : "No job failure currently requires attention."}</span>
             </div>
           </div>
 
@@ -67,8 +67,8 @@ export default function ExecutiveCommandCenter({ summary = {} }) {
             <Clock3 size={18} />
 
             <div>
-              <strong>1 pending attendance review</strong>
-              <span>Supervisor verification is required.</span>
+              <strong>{jobSummary.queued_jobs || 0} queued jobs</strong>
+              <span>Enterprise work waiting for an available worker.</span>
             </div>
           </div>
 
@@ -76,8 +76,8 @@ export default function ExecutiveCommandCenter({ summary = {} }) {
             <Database size={18} />
 
             <div>
-              <strong>Systems online</strong>
-              <span>API and database services are responding.</span>
+              <strong>{online ? "Systems online" : "System check required"}</strong>
+              <span>{online ? "Dashboard services are responding." : "One or more dashboard services did not respond."}</span>
             </div>
           </div>
         </article>
@@ -91,8 +91,8 @@ export default function ExecutiveCommandCenter({ summary = {} }) {
           </div>
 
           <div className="command-center__metric">
-            <strong>{activeDeployments}</strong>
-            <span>Active deployments</span>
+            <strong>{totalDeployments}</strong>
+            <span>Total operational deployments</span>
           </div>
 
           <div className="command-center__metric">
@@ -113,8 +113,8 @@ export default function ExecutiveCommandCenter({ summary = {} }) {
           </div>
 
           <div className="command-center__metric">
-            <strong>0</strong>
-            <span>Survey submissions awaiting validation</span>
+            <strong>{jobSummary.running_jobs || 0}</strong>
+            <span>Enterprise jobs currently running</span>
           </div>
         </article>
 
@@ -126,17 +126,17 @@ export default function ExecutiveCommandCenter({ summary = {} }) {
 
           <div className="command-center__status">
             <span>API</span>
-            <strong>Online</strong>
+            <strong>{online ? "Online" : "Attention"}</strong>
           </div>
 
           <div className="command-center__status">
             <span>Database</span>
-            <strong>Online</strong>
+            <strong>{online ? "Online" : "Unverified"}</strong>
           </div>
 
           <div className="command-center__status">
             <span>Platform Status</span>
-            <strong>Operational</strong>
+            <strong>{online ? "Operational" : "Attention"}</strong>
           </div>
         </article>
       </div>

@@ -3,20 +3,7 @@ import { useState } from "react";
 function NotificationBell() {
     const [isOpen, setIsOpen] = useState(false);
 
-    const notifications = [
-        {
-            id: 1,
-            title: "Welcome to EIOS",
-            message: "Your enterprise session is active.",
-            time: "Just now",
-        },
-        {
-            id: 2,
-            title: "System Ready",
-            message: "All core modules are available.",
-            time: "Today",
-        },
-    ];
+    const notifications = [];
 
     return (
         <div className="eios-notification">
@@ -44,6 +31,12 @@ function NotificationBell() {
                     </div>
 
                     <div className="eios-notification__list">
+                        {notifications.length === 0 && (
+                            <div className="eios-notification__item">
+                                <strong>No unread notifications</strong>
+                                <p>Operational alerts will appear here when generated.</p>
+                            </div>
+                        )}
                         {notifications.map((notification) => (
                             <div
                                 className="eios-notification__item"

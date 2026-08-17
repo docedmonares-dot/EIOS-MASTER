@@ -1,15 +1,12 @@
 import {
   BarChart3,
   BriefcaseBusiness,
-  Building2,
   CheckCircle2,
   CircleAlert,
   ClipboardList,
   Clock3,
-  Database,
   FileCog,
   FilePlus2,
-  FileText,
   Globe2,
   LayoutDashboard,
   Map,
@@ -30,8 +27,8 @@ import { Link } from "react-router-dom";
 
 import MainLayout from "../../../layouts/MainLayout";
 
-import ActivityCard from "../../../components/dashboard/ActivityCard";
 import QuickActionCard from "../../../components/dashboard/QuickActionCard";
+import { useAuth } from "../../authentication/context/AuthContext";
 
 import ExecutiveCommandCenter from "../../../components/dashboard/widgets/ExecutiveCommandCenter";
 import ExecutiveOverview from "../../../components/dashboard/widgets/ExecutiveOverview";
@@ -49,7 +46,7 @@ const enterpriseNavigationBooks = [
     book: "Book II",
     title: "Enterprise Administration",
     description:
-      "Identity, governance, master data, security, settings, and platform administration.",
+      "Identity, enterprise foundation, geographic master data, jobs, and platform health.",
     modules: [
       {
         title: "Administration Center",
@@ -90,17 +87,10 @@ const enterpriseNavigationBooks = [
   },
   {
     book: "Book III",
-    title: "Projects and Survey Engineering",
+    title: "Survey Engineering",
     description:
-      "Create projects, design survey instruments, manage questions, and preview questionnaires.",
+      "Create surveys, design instruments, manage questions, and preview questionnaires.",
     modules: [
-      {
-        title: "Projects",
-        description:
-          "Manage enterprise projects, research programs, and operational initiatives.",
-        icon: Building2,
-        path: "/projects",
-      },
       {
         title: "Survey Engine",
         description:
@@ -155,9 +145,9 @@ const enterpriseNavigationBooks = [
   },
   {
     book: "Book V",
-    title: "Analytics, GIS, and Repository",
+    title: "Analytics and GIS",
     description:
-      "Transform operational data into geographic intelligence, analysis, and institutional records.",
+      "Transform synchronized operational data into analysis and geographic intelligence.",
     modules: [
       {
         title: "Analytics",
@@ -173,18 +163,12 @@ const enterpriseNavigationBooks = [
         icon: Map,
         path: "/gis",
       },
-      {
-        title: "Repository",
-        description:
-          "Manage datasets, reports, instruments, documents, and records.",
-        icon: Database,
-        path: "/repository",
-      },
     ],
   },
 ];
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [summary, setSummary] = useState({
     total_enumerators: 0,
     total_deployments: 0,
@@ -300,7 +284,7 @@ export default function DashboardPage() {
             </h1>
 
             <p className="dashboard-subtitle">
-              Good Morning, Dr. Edwin Monares.
+              Welcome, {user?.full_name || user?.name || user?.email || "EIOS User"}.
               <br />
               Welcome back. Here is today&apos;s operational
               overview and enterprise navigation center.
@@ -314,9 +298,9 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <ExecutiveOverview summary={summary} />
+        <ExecutiveOverview summary={summary} online={!dashboardError} />
 
-        <ExecutiveCommandCenter summary={summary} />
+        <ExecutiveCommandCenter summary={summary} jobSummary={jobSummary} online={!dashboardError} />
 
         {/* =====================================================
             ENTERPRISE NAVIGATION HUB
@@ -421,9 +405,8 @@ export default function DashboardPage() {
               <h2>Enterprise Job Operations</h2>
 
               <p>
-                Live processing status for imports, exports,
-                analytics, reports, artificial intelligence,
-                backups, synchronization, and notifications.
+                Live processing status for registered enterprise
+                job types and available workers.
               </p>
             </div>
 
@@ -568,17 +551,9 @@ export default function DashboardPage() {
           <QuickActionCard
             icon={LayoutDashboard}
             title="Administration"
-            description="Open enterprise administration, security, users, geography, and settings."
+            description="Open enterprise foundation, users, geography, jobs, and system health."
             actionLabel="Open"
             to="/administration"
-          />
-
-          <QuickActionCard
-            icon={FilePlus2}
-            title="New Project"
-            description="Create and configure a new enterprise project."
-            actionLabel="Create"
-            to="/projects"
           />
 
           <QuickActionCard
@@ -621,26 +596,6 @@ export default function DashboardPage() {
             to="/gis"
           />
 
-          <QuickActionCard
-            icon={FileText}
-            title="Repository"
-            description="Open reports, documents, datasets, and institutional records."
-            actionLabel="Open"
-            to="/repository"
-          />
-        </div>
-
-        <div className="dashboard-lower-grid">
-          <ActivityCard />
-
-          <div className="dashboard-placeholder">
-            <h3>Notifications</h3>
-
-            <p>
-              System alerts, approvals, reminders, and
-              operational notifications will appear here.
-            </p>
-          </div>
         </div>
       </section>
     </MainLayout>
