@@ -1,6 +1,7 @@
 import axios from "axios";
+import { API_BASE_URL } from "../config/runtime";
 
-const API = "http://localhost:5050/api";
+const API = API_BASE_URL;
 const TOKEN_KEY = "eios_token";
 
 export async function getDashboardSummary() {

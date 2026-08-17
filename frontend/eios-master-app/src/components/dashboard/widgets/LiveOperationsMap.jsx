@@ -15,12 +15,9 @@ import {
 } from "react-leaflet";
 
 import { io } from "socket.io-client";
+import { SOCKET_URL } from "../../../config/runtime";
 
 import "leaflet/dist/leaflet.css";
-
-const SOCKET_URL =
-  import.meta.env.VITE_SOCKET_URL ||
-  "http://localhost:5050";
 
 const DEFAULT_CENTER = [
   12.8797,
@@ -219,7 +216,12 @@ export default function LiveOperationsMap() {
   const [
     locationError,
     setLocationError,
-  ] = useState("");
+  ] = useState(() =>
+    typeof navigator !== "undefined" &&
+    navigator.geolocation
+      ? ""
+      : "Geolocation is not supported by this browser."
+  );
 
   const [
     gpsQueueCount,
@@ -352,10 +354,6 @@ export default function LiveOperationsMap() {
     if (
       !navigator.geolocation
     ) {
-      setLocationError(
-        "Geolocation is not supported by this browser."
-      );
-
       return undefined;
     }
 

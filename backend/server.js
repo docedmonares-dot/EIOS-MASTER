@@ -14,6 +14,13 @@ const metadataCompilerRoutes = require(
 );
 
 const app = express();
+const allowedOrigins = String(
+    process.env.CORS_ALLOWED_ORIGINS ||
+    "http://localhost:5173"
+)
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 const choiceLibraryRoutes = require(
     "./src/routes/choiceLibrary"
 );
@@ -28,9 +35,21 @@ app.get('/', (req, res) => {
 /* ======================
    MIDDLEWARE
 ====================== */
-app.use(express.json());
+app.disable("x-powered-by");
+app.set("trust proxy", process.env.TRUST_PROXY === "true" ? 1 : false);
+app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors({
+    origin(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+            return;
+        }
+
+        callback(new Error("Origin is not allowed by CORS policy."));
+    },
+    credentials: true
+}));
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(morgan('dev'));
 

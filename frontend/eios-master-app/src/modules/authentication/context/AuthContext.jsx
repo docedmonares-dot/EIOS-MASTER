@@ -12,10 +12,11 @@ import {
   login as loginService,
   logout as logoutService,
 } from "../services/authService";
+import { API_BASE_URL } from "../../../config/runtime";
 
 const AuthContext = createContext(null);
 
-const API_URL = "http://localhost:5050/api";
+const API_URL = API_BASE_URL;
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
