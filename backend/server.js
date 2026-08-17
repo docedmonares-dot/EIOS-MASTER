@@ -146,6 +146,16 @@ app.use(
     require("./src/routes/areaAssignments")
 );
 
+app.use(
+    "/api/survey-responses",
+    require("./src/routes/surveyResponses")
+);
+
+app.use(
+    "/api/analytics",
+    require("./src/routes/analytics")
+);
+
 /* ======================
    MEMORY STORES
 ====================== */

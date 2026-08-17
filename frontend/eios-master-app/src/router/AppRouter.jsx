@@ -22,6 +22,7 @@ import UserAdministrationPage from "../modules/administration/pages/UserAdminist
 
 import FieldEnumeratorWorkspacePage from "../modules/field-operations/pages/FieldEnumeratorWorkspacePage";
 import DeploymentOperationsPage from "../modules/field-operations/pages/DeploymentOperationsPage";
+import AnalyticsWorkspacePage from "../modules/analytics/pages/AnalyticsWorkspacePage";
 
 import EnterpriseQuestionEditorPage from "../modules/enterprise-question-editor/pages/EnterpriseQuestionEditorPage";
 
@@ -224,10 +225,7 @@ export default function AppRouter() {
           path="/analytics"
           element={
             <ProtectedModule>
-              <ModulePage
-                title="Analytics"
-                description="View survey results, operational indicators, trends, and enterprise intelligence."
-              />
+              <AnalyticsWorkspacePage />
             </ProtectedModule>
           }
         />

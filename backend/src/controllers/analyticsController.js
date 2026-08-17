@@ -1,5 +1,44 @@
 const pool = require('../config/database');
 
+function analyticsLabel(value) {
+    if (value === null || value === undefined || value === '') {
+        return 'No answer';
+    }
+
+    if (Array.isArray(value)) {
+        return value.map(analyticsLabel).join(', ');
+    }
+
+    if (typeof value === 'object') {
+        const path = Array.isArray(value.path) ? value.path : [];
+        const pathLabel = path
+            .map((item) =>
+                typeof item === 'object'
+                    ? item?.unit_name ||
+                        item?.official_name ||
+                        item?.name ||
+                        item?.label
+                    : item
+            )
+            .filter(Boolean)
+            .join(' / ');
+
+        const selectedUnit = value.selected_unit;
+        const selectedLabel =
+            typeof selectedUnit === 'object'
+                ? selectedUnit?.name || selectedUnit?.label
+                : selectedUnit;
+
+        return pathLabel ||
+            selectedLabel ||
+            value.selected_unit_name ||
+            value.label ||
+            JSON.stringify(value);
+    }
+
+    return String(value);
+}
+
 exports.getFrequencies = async (req, res) => {
     try {
         const result = await pool.query(
@@ -25,7 +64,7 @@ exports.getFrequencies = async (req, res) => {
             const answers = row.answers_json || {};
 
             Object.keys(answers).forEach(question => {
-                const value = answers[question];
+                const value = analyticsLabel(answers[question]);
 
                 if (!frequencyMap[question]) {
                     frequencyMap[question] = {};
