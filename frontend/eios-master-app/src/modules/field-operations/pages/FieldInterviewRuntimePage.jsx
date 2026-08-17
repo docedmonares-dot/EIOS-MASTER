@@ -9,6 +9,7 @@ import {
 } from "react-router-dom";
 
 import MainLayout from "../../../layouts/MainLayout";
+import { createUuid } from "../../../utils/createUuid";
 import {
   createOfflineResponse,
 } from "../../../services/offlineResponseService";
@@ -282,7 +283,7 @@ export default function FieldInterviewRuntimePage() {
       }
 
       const localResponseId =
-        `LOCAL-${crypto.randomUUID()}`;
+        `LOCAL-${createUuid()}`;
 
       const respondentCode =
         `RESP-${Date.now()}`;
