@@ -1,4 +1,5 @@
 import {
+  Fragment,
   useEffect,
   useMemo,
   useState,
@@ -520,7 +521,7 @@ export default function FieldInterviewRuntimePage() {
           </header>
 
           {activeRuntimeSection.questions.map(
-            (question) => {
+            (question, sectionQuestionIndex) => {
               const questionId =
                 question.question_id;
 
@@ -573,9 +574,40 @@ export default function FieldInterviewRuntimePage() {
                     question.required
                 );
 
+              const group =
+                (question.settings || question.settings_json)
+                  ?.election_position || {};
+              const previousQuestion =
+                activeRuntimeSection.questions[
+                  sectionQuestionIndex - 1
+                ];
+              const previousGroup =
+                (previousQuestion?.settings ||
+                  previousQuestion?.settings_json)
+                  ?.election_position || {};
+              const startsGroup =
+                group.electoral_group_code &&
+                group.electoral_group_code !==
+                  previousGroup.electoral_group_code;
+
               return (
+                <Fragment key={questionId}>
+                  {startsGroup && (
+                    <header
+                      style={{
+                        padding: "12px 14px",
+                        borderRadius: "10px",
+                        background: "#eff6ff",
+                        border: "1px solid #bfdbfe",
+                      }}
+                    >
+                      <strong>
+                        {group.electoral_group_name ||
+                          group.electoral_group_code}
+                      </strong>
+                    </header>
+                  )}
                   <PreviewQuestion
-                    key={questionId}
                     question={{
                       ...question,
                       required,
@@ -598,6 +630,7 @@ export default function FieldInterviewRuntimePage() {
                       responsesByVariable
                     }
                   />
+                </Fragment>
               );
             }
           )}

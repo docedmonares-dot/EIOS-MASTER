@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 
 import {
   PreviewQuestion,
@@ -77,12 +77,37 @@ export default function PreviewSection({
       ) : (
         <div className="preview-section__questions">
           {questions.map(
-            (question, index) => (
+            (question, index) => {
+              const group =
+                (question.settings || question.settings_json)
+                  ?.election_position || {};
+              const previousGroup =
+                (questions[index - 1]?.settings ||
+                  questions[index - 1]?.settings_json)
+                  ?.election_position || {};
+              const startsGroup =
+                group.electoral_group_code &&
+                group.electoral_group_code !==
+                  previousGroup.electoral_group_code;
+
+              return (
+              <Fragment key={question.questionnaire_item_id}>
+              {startsGroup && (
+                <header
+                  style={{
+                    padding: "12px 14px",
+                    borderRadius: "10px",
+                    background: "#eff6ff",
+                    border: "1px solid #bfdbfe",
+                  }}
+                >
+                  <strong>
+                    {group.electoral_group_name ||
+                      group.electoral_group_code}
+                  </strong>
+                </header>
+              )}
               <PreviewQuestion
-                key={
-                  question
-                    .questionnaire_item_id
-                }
                 question={question}
                 questionNumber={
                   index + 1
@@ -102,7 +127,9 @@ export default function PreviewSection({
                   contextResponses
                 }
               />
-            )
+              </Fragment>
+              );
+            }
           )}
         </div>
       )}

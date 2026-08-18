@@ -106,6 +106,7 @@ export default function QuestionnaireDesignerPage() {
     cancelQuestionEdit,
     toggleSelectedSection,
     deleteQuestionItem,
+    toggleElectoralGroup,
 
     compilerOpen,
     compiling,
@@ -443,6 +444,9 @@ function handlePreview() {
   }
   onDeleteQuestion={
     deleteQuestionItem
+  }
+  onToggleElectionGroup={
+    toggleElectoralGroup
   }
 />
 

@@ -145,6 +145,22 @@ export async function updateQuestionnaireSection(
   return response.data.data;
 }
 
+export async function updateElectoralGroup(
+  surveyId,
+  groupCode,
+  isApplicable
+) {
+  requireSurveyId(surveyId);
+
+  const response = await axios.put(
+    `${API}/questionnaire-designer/${surveyId}/election-groups/${groupCode}`,
+    { is_applicable: Boolean(isApplicable) },
+    { headers: getAuthorizationHeaders() }
+  );
+
+  return response.data.data;
+}
+
 /* =========================================================
    SURVEY-LOCAL QUESTIONS
 ========================================================= */

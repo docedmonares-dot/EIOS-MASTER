@@ -50,6 +50,15 @@ router.put(
     controller.updateSection
 );
 
+router.put(
+    "/:surveyId/election-groups/:groupCode",
+    verifyToken,
+    requirePermission(
+        PERMISSIONS.OPERATIONS.MANAGE
+    ),
+    controller.updateElectionGroup
+);
+
 /* =========================================================
    CREATE SURVEY-LOCAL QUESTION
 ========================================================= */

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 import {
+  Fragment,
   useEffect,
   useRef,
   useState,
@@ -26,6 +27,7 @@ export default function DesignerCanvas({
   onSaveQuestion,
   onToggleSection,
   onDeleteQuestion,
+  onToggleElectionGroup,
 }) {
   const [quickAddOpen, setQuickAddOpen] =
     useState(false);
@@ -421,9 +423,57 @@ export default function DesignerCanvas({
                 editingItemId ===
                 itemId;
 
+              const group =
+                item.settings_json
+                  ?.election_position || {};
+              const groupCode =
+                group.electoral_group_code;
+              const previousGroupCode =
+                visibleItems[index - 1]
+                  ?.settings_json
+                  ?.election_position
+                  ?.electoral_group_code;
+              const startsGroup =
+                groupCode &&
+                groupCode !== previousGroupCode;
+              const groupIncluded =
+                group.electoral_group_is_applicable !== false;
+
               return (
+                <Fragment key={itemId}>
+                {startsGroup && (
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: "12px",
+                      marginTop: index === 0 ? 0 : "18px",
+                      padding: "12px 14px",
+                      borderRadius: "10px",
+                      background: groupIncluded ? "#eff6ff" : "#f1f5f9",
+                      border: "1px solid #bfdbfe",
+                    }}
+                  >
+                    <div>
+                      <strong>{group.electoral_group_name || groupCode}</strong>
+                      <div>{groupIncluded ? "On" : "Off"}</div>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={saving}
+                      onClick={() =>
+                        onToggleElectionGroup?.(
+                          groupCode,
+                          groupIncluded
+                        )
+                      }
+                    >
+                      {groupIncluded ? "Switch Off" : "Switch On"}
+                    </button>
+                  </div>
+                )}
                 <article
-                  key={itemId}
                   className={
                     selected
                       ? "survey-studio-question survey-studio-question--selected"
@@ -647,6 +697,7 @@ export default function DesignerCanvas({
                     </button>
                   )}
                 </article>
+                </Fragment>
               );
             }
           )}

@@ -17,6 +17,7 @@ import {
   getQuestionnaireDesignerWorkspace,
   updateQuestionnaireItem,
   updateQuestionnaireSection,
+  updateElectoralGroup,
 } from "../../../../services/questionnaireDesignerService";
 
 const initialSectionForm = {
@@ -726,6 +727,37 @@ export default function useQuestionnaireDesigner(
     }
   }
 
+  async function toggleElectoralGroup(groupCode, currentlyIncluded) {
+    if (!groupCode) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setSuccessMessage("");
+      setInspectorErrorMessage("");
+      await updateElectoralGroup(
+        surveyId,
+        groupCode,
+        !currentlyIncluded
+      );
+      setSuccessMessage(
+        currentlyIncluded
+          ? "Electoral subsection switched Off across AST, ballot, and tenacity questions."
+          : "Electoral subsection switched On across AST, ballot, and tenacity questions."
+      );
+      await loadWorkspace();
+    } catch (error) {
+      setInspectorErrorMessage(
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to change electoral subsection applicability."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
   /* =========================================================
      METADATA COMPILER
   ========================================================= */
@@ -859,6 +891,7 @@ export default function useQuestionnaireDesigner(
     cancelQuestionEdit,
     toggleSelectedSection,
     deleteQuestionItem,
+    toggleElectoralGroup,
 
     compilerOpen,
     compiling,

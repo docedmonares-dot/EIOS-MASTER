@@ -1835,3 +1835,66 @@ exports.deleteQuestionnaireItem = async (req, res) => {
         client.release();
     }
 };
+
+exports.updateElectionGroup = async (req, res) => {
+    try {
+        const surveyId = cleanText(req.params?.surveyId);
+        const groupCode = cleanText(req.params?.groupCode);
+        const isApplicable = req.body?.is_applicable;
+
+        if (!surveyId || !groupCode || typeof isApplicable !== "boolean") {
+            return res.status(400).json({
+                success: false,
+                message: "Survey ID, electoral group code, and applicability are required."
+            });
+        }
+
+        const result = await pool.query(
+            `UPDATE survey_local_questions
+             SET settings_json = jsonb_set(
+                     COALESCE(settings_json, '{}'::jsonb),
+                     '{election_position,electoral_group_is_applicable}',
+                     to_jsonb($1::boolean),
+                     TRUE
+                 ),
+                 updated_by = $2,
+                 updated_at = NOW()
+             WHERE survey_id = $3
+               AND is_active = TRUE
+               AND settings_json -> 'election_position' ->> 'electoral_group_code' = $4
+             RETURNING local_question_id`,
+            [
+                isApplicable,
+                req.user?.user_id || req.user?.id || null,
+                surveyId,
+                groupCode
+            ]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "The electoral group was not found in this instrument."
+            });
+        }
+
+        return res.json({
+            success: true,
+            message: isApplicable
+                ? "Electoral group included in the instrument."
+                : "Electoral group excluded from the instrument.",
+            data: {
+                electoral_group_code: groupCode,
+                is_applicable: isApplicable,
+                linked_questions_updated: result.rowCount
+            }
+        });
+    } catch (error) {
+        console.error("UPDATE ELECTORAL GROUP ERROR:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Unable to update the electoral group.",
+            error: error.message
+        });
+    }
+};

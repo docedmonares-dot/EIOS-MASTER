@@ -224,7 +224,11 @@ function resolveSurveyReferences(metadata) {
                     resolvedItem.question
                         ?.settings_json
                         ?.election_position
-                        ?.is_applicable !== false
+                        ?.is_applicable !== false &&
+                    resolvedItem.question
+                        ?.settings_json
+                        ?.election_position
+                        ?.electoral_group_is_applicable !== false
             );
 
     return {
