@@ -26,6 +26,24 @@ export async function getSurveyResponses() {
   return Array.isArray(body) ? body : [];
 }
 
+export async function getBiAnalytics({
+  surveyId,
+  surveyVersionId = "",
+  question = "",
+  dimension = "",
+}) {
+  const parameters = new URLSearchParams({ survey_id: surveyId });
+  if (surveyVersionId) parameters.set("survey_version_id", surveyVersionId);
+  if (question) parameters.set("question", question);
+  if (dimension) parameters.set("dimension", dimension);
+
+  return read(
+    await fetch(`${API_BASE_URL}/analytics/bi?${parameters.toString()}`, {
+      headers: headers(),
+    })
+  );
+}
+
 export async function downloadSurveyData(surveyId, format) {
   const response = await fetch(
     `${API_BASE_URL}/data-exports/surveys/${surveyId}/${format}`,

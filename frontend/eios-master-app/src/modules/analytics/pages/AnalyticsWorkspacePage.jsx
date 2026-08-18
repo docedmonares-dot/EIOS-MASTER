@@ -1,35 +1,50 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import MainLayout from "../../../layouts/MainLayout";
-import { downloadSurveyData, getAnalyticsFrequencies, getSurveyResponses } from "../../../services/analyticsService";
+import { downloadSurveyData, getBiAnalytics, getSurveyResponses } from "../../../services/analyticsService";
 
 export default function AnalyticsWorkspacePage() {
-  const [analytics, setAnalytics] = useState({ total_responses: 0, frequency: {}, percentage: {} });
   const [responses, setResponses] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedExportSurvey, setSelectedExportSurvey] = useState("");
   const [exporting, setExporting] = useState("");
+  const [biAnalytics, setBiAnalytics] = useState({ summaries: [], dimensions: [], crosstab: null });
+  const [biLoading, setBiLoading] = useState(false);
+  const [selectedBiQuestion, setSelectedBiQuestion] = useState("");
+  const [selectedDimension, setSelectedDimension] = useState("");
 
   const load = useCallback(async () => {
     try {
-      setLoading(true);
       setError("");
-      const [frequencyResult, responseResult] = await Promise.all([
-        getAnalyticsFrequencies(),
-        getSurveyResponses(),
-      ]);
-      setAnalytics(frequencyResult);
+      const responseResult = await getSurveyResponses();
       setResponses(responseResult);
       setSelectedExportSurvey((current) => current || responseResult.find((item) => item.survey_id)?.survey_id || "");
     } catch (loadError) {
       setError(loadError.message || "Unable to load analytics.");
-    } finally {
-      setLoading(false);
     }
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    if (!selectedExportSurvey) return;
+    let active = true;
+    setBiLoading(true);
+    getBiAnalytics({
+      surveyId: selectedExportSurvey,
+      question: selectedBiQuestion,
+      dimension: selectedDimension,
+    })
+      .then((result) => {
+        if (!active) return;
+        setBiAnalytics(result);
+        setSelectedBiQuestion((current) => current || result.summaries?.[0]?.key || "");
+        setSelectedDimension((current) => current || result.dimensions?.[0]?.key || "");
+      })
+      .catch((biError) => active && setError(biError.message || "Unable to load BI analytics."))
+      .finally(() => active && setBiLoading(false));
+    return () => { active = false; };
+  }, [selectedExportSurvey, selectedBiQuestion, selectedDimension]);
 
   const surveyCount = useMemo(() => new Set(responses.map((item) => item.survey_id).filter(Boolean)).size, [responses]);
   const exportSurveys = useMemo(() => {
@@ -44,9 +59,6 @@ export default function AnalyticsWorkspacePage() {
     });
     return [...unique.values()];
   }, [responses]);
-  const questionEntries = Object.entries(analytics.frequency || {});
-  const candidateMetrics = analytics.candidate_metrics || [];
-  const ballotEntries = Object.entries(analytics.ballot_frequency || {});
 
   return (
     <MainLayout>
@@ -58,9 +70,9 @@ export default function AnalyticsWorkspacePage() {
         </div>
 
         <div className="administration-dashboard-page__summary">
-          <article><span>Responses</span><strong>{analytics.total_responses || responses.length}</strong></article>
+          <article><span>Responses</span><strong>{biAnalytics.total_responses || responses.length}</strong></article>
           <article><span>Surveys</span><strong>{surveyCount}</strong></article>
-          <article><span>Answered Variables</span><strong>{questionEntries.length}</strong></article>
+          <article><span>Analyzed Variables</span><strong>{biAnalytics.summaries?.length || 0}</strong></article>
           <article><span>Analytics Status</span><strong className="administration-dashboard-page__online">{error ? "ATTENTION" : "ONLINE"}</strong></article>
         </div>
 
@@ -70,7 +82,11 @@ export default function AnalyticsWorkspacePage() {
           <h2>Administrator Data Export</h2>
           <p>Download synchronized response data with governed variable labels, value labels, version metadata, and a codebook.</p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
-            <select value={selectedExportSurvey} onChange={(event) => setSelectedExportSurvey(event.target.value)} disabled={exporting || exportSurveys.length === 0}>
+            <select value={selectedExportSurvey} onChange={(event) => {
+              setSelectedExportSurvey(event.target.value);
+              setSelectedBiQuestion("");
+              setSelectedDimension("");
+            }} disabled={exporting || exportSurveys.length === 0}>
               {exportSurveys.length === 0 && <option value="">No survey responses available</option>}
               {exportSurveys.map((survey) => <option key={survey.survey_id} value={survey.survey_id}>{survey.label}</option>)}
             </select>
@@ -100,86 +116,77 @@ export default function AnalyticsWorkspacePage() {
           </div>
         </div>
 
-        {candidateMetrics.length > 0 && (
-          <div style={{ marginTop: 20, padding: 20, background: "#fff", borderRadius: 14, overflowX: "auto" }}>
-            <h2>Candidate Awareness, Satisfaction, and Trust Means</h2>
-            <p>Lower means are more favorable under the configured coding. Aware-only means exclude automatically assigned neutral values.</p>
-            <table style={{ width: "100%", marginTop: 12 }}>
-              <thead>
-                <tr>
-                  <th align="left">Candidate</th>
-                  <th align="right">Awareness Mean</th>
-                  <th align="right">Satisfaction Mean</th>
-                  <th align="right">Trust Mean</th>
-                  <th align="right">Aware-only Satisfaction</th>
-                  <th align="right">Aware-only Trust</th>
-                  <th align="right">Auto-neutral</th>
-                </tr>
-              </thead>
-              <tbody>
-                {candidateMetrics.map((metric) => (
-                  <tr key={metric.candidate_id}>
-                    <td>{metric.candidate_label}</td>
-                    <td align="right">{metric.awareness_mean ?? "—"}</td>
-                    <td align="right">{metric.satisfaction_mean ?? "—"}</td>
-                    <td align="right">{metric.trust_mean ?? "—"}</td>
-                    <td align="right">{metric.aware_only_satisfaction_mean ?? "—"}</td>
-                    <td align="right">{metric.aware_only_trust_mean ?? "—"}</td>
-                    <td align="right">{metric.auto_neutral_count}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <div style={{ marginTop: 20, padding: 20, background: "#fff", borderRadius: 14 }}>
+          <h2>Dynamic BI Percentage Dashboard</h2>
+          <p>All questions present in the response version are decoded from published metadata. Percentages use valid responses; multiple-response charts use respondents selecting each option.</p>
+          {biLoading && <p>Building chart-ready analytics...</p>}
+          {!biLoading && biAnalytics.summaries?.length === 0 && <p>No synchronized answers are available for the selected survey.</p>}
 
-        {ballotEntries.length > 0 && (
-          <div style={{ marginTop: 20, padding: 20, background: "#fff", borderRadius: 14 }}>
-            <h2>Neutral Ballot Frequencies</h2>
-            {ballotEntries.map(([position, candidates]) => (
-              <article key={position} style={{ borderTop: "1px solid #e2e8f0", padding: "14px 0" }}>
-                <strong>{position.replaceAll("_", " ")}</strong>
-                <table style={{ width: "100%", marginTop: 8 }}>
-                  <thead><tr><th align="left">Candidate</th><th align="right">Selections</th></tr></thead>
-                  <tbody>
-                    {candidates.map((candidate) => (
-                      <tr key={candidate.candidate_id}>
-                        <td>{candidate.candidate_label}</td>
-                        <td align="right">{candidate.count}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </article>
+          <div style={{ display: "grid", gap: 18, marginTop: 16 }}>
+            {(biAnalytics.summaries || []).map((summary) => (
+              <details key={summary.key} open={summary.key === selectedBiQuestion} style={{ border: "1px solid #dbe5f1", borderRadius: 12, padding: 14 }}>
+                <summary style={{ cursor: "pointer", fontWeight: 700 }}>{summary.label}</summary>
+                <p style={{ color: "#52657f" }}>
+                  {summary.section_title} · Valid base: {summary.valid_base} · Missing: {summary.missing_count} · {summary.percentage_basis}
+                </p>
+                <div style={{ display: "grid", gap: 10 }}>
+                  {summary.categories.map((category) => (
+                    <div key={category.label}>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                        <span>{category.label}</span>
+                        <strong>{category.count} ({category.percentage.toFixed(2)}%)</strong>
+                      </div>
+                      <div style={{ height: 14, borderRadius: 999, background: "#e2e8f0", overflow: "hidden", marginTop: 5 }}>
+                        <div style={{ width: `${Math.min(category.percentage, 100)}%`, height: "100%", background: "#2563eb" }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </details>
             ))}
           </div>
-        )}
+        </div>
 
         <div style={{ marginTop: 20, padding: 20, background: "#fff", borderRadius: 14 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-            <h2>Frequency Distribution</h2>
-            <button type="button" onClick={load} disabled={loading}>{loading ? "Loading..." : "Refresh"}</button>
+          <h2>Demographic and Geographic Cross-tabulation</h2>
+          <p>Select any analyzed question and compare it with a respondent-profile or Geographic Master dimension.</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12 }}>
+            <label>
+              <span>Question</span>
+              <select value={selectedBiQuestion} onChange={(event) => setSelectedBiQuestion(event.target.value)} style={{ width: "100%" }}>
+                {(biAnalytics.summaries || []).map((summary) => <option key={summary.key} value={summary.key}>{summary.label}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Demographic / Geographic Dimension</span>
+              <select value={selectedDimension} onChange={(event) => setSelectedDimension(event.target.value)} style={{ width: "100%" }}>
+                {(biAnalytics.dimensions || []).map((dimension) => <option key={dimension.key} value={dimension.key}>{dimension.label}</option>)}
+              </select>
+            </label>
           </div>
 
-          {!loading && questionEntries.length === 0 && <p>No synchronized answers are available for analysis.</p>}
-          {questionEntries.map(([question, values]) => (
-            <article key={question} style={{ borderTop: "1px solid #e2e8f0", padding: "14px 0" }}>
-              <strong>{question}</strong>
-              <table style={{ width: "100%", marginTop: 8 }}>
-                <thead><tr><th align="left">Answer</th><th align="right">Count</th><th align="right">Percent</th></tr></thead>
+          {biAnalytics.crosstab && (
+            <div style={{ overflowX: "auto", marginTop: 16 }}>
+              <h3>{biAnalytics.crosstab.question.label} × {biAnalytics.crosstab.dimension.label}</h3>
+              <table style={{ width: "100%" }}>
+                <thead><tr><th align="left">Group</th><th align="left">Answer</th><th align="right">Count</th><th align="right">Column %</th></tr></thead>
                 <tbody>
-                  {Object.entries(values).map(([value, count]) => (
-                    <tr key={value}>
-                      <td>{value}</td>
-                      <td align="right">{count}</td>
-                      <td align="right">{analytics.percentage?.[question]?.[value] || "—"}</td>
-                    </tr>
-                  ))}
+                  {biAnalytics.crosstab.groups.flatMap((group) =>
+                    group.cells.map((cell, index) => (
+                      <tr key={`${group.dimension}-${cell.answer}`}>
+                        <td>{index === 0 ? `${group.dimension} (n=${group.base})` : ""}</td>
+                        <td>{cell.answer}</td>
+                        <td align="right">{cell.count}</td>
+                        <td align="right">{cell.column_percentage.toFixed(2)}%</td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
-            </article>
-          ))}
+            </div>
+          )}
         </div>
+
       </section>
     </MainLayout>
   );

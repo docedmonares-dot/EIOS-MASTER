@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const { buildBiAnalytics } = require('../services/biAnalyticsService');
 
 function analyticsLabel(value) {
     if (value === null || value === undefined || value === '') {
@@ -233,6 +234,33 @@ exports.getFrequencies = async (req, res) => {
         console.error(err);
         res.status(500).json({
             error: err.message
+        });
+    }
+};
+
+exports.getBiAnalytics = async (req, res) => {
+    try {
+        if (!req.query.survey_id) {
+            return res.status(400).json({
+                success: false,
+                message: 'Survey ID is required for BI analytics.'
+            });
+        }
+
+        const analytics = await buildBiAnalytics({
+            surveyId: req.query.survey_id,
+            surveyVersionId: req.query.survey_version_id || null,
+            questionKey: req.query.question || null,
+            dimensionKey: req.query.dimension || null,
+        });
+
+        return res.json(analytics);
+    } catch (error) {
+        console.error('BI ANALYTICS ERROR:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Unable to build BI analytics.',
+            error: error.message
         });
     }
 };

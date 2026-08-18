@@ -43,6 +43,33 @@ export function isAnswerEmpty(value) {
   return false;
 }
 
+export function resolveQuestionCandidates(question) {
+  const choices =
+    question?.choice_list?.choices ||
+    question?.choice_list?.options ||
+    question?.options ||
+    [];
+
+  return choices
+    .filter((candidate) => candidate.is_active !== false)
+    .map((candidate) => ({
+      ...candidate,
+      candidate_id:
+        candidate.option_code ||
+        candidate.choice_code ||
+        candidate.option_value ||
+        candidate.value ||
+        candidate.choice_id,
+    }))
+    .filter(
+      (candidate) =>
+        candidate.candidate_id &&
+        !candidate.is_none_option &&
+        String(candidate.candidate_id).toUpperCase() !==
+          "UNDECIDED"
+    );
+}
+
 export function isQuestionAnswerValid(
   question,
   value,
@@ -60,20 +87,12 @@ export function isQuestionAnswerValid(
     CANDIDATE_EVALUATION_TYPE_CODE
   ) {
     const candidates =
-      question?.choice_list?.choices || [];
+      resolveQuestionCandidates(question);
     const answers = value?.candidates || {};
 
     return candidates
-      .filter(
-        (candidate) =>
-          String(
-            candidate.option_code || ""
-          ).toUpperCase() !== "UNDECIDED"
-      )
       .every((candidate) => {
-        const candidateId =
-          candidate.option_code ||
-          candidate.choice_code;
+        const candidateId = candidate.candidate_id;
         const answer = answers[candidateId];
 
         return (

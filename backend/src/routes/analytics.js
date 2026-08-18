@@ -29,4 +29,13 @@ router.get(
     controller.getFrequencies
 );
 
+router.get(
+    "/bi",
+    verifyToken,
+    requirePermission(
+        PERMISSIONS.ANALYTICS.ANALYZE
+    ),
+    controller.getBiAnalytics
+);
+
 module.exports = router;

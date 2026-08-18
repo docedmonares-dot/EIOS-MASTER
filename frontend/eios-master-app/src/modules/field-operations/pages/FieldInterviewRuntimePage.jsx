@@ -162,8 +162,14 @@ export default function FieldInterviewRuntimePage() {
       );
 
     if (incomplete.length > 0) {
+      const firstIncomplete = incomplete[0];
+      const questionLabel =
+        firstIncomplete.question_text ||
+        firstIncomplete.question_label ||
+        firstIncomplete.variable_name ||
+        "the highlighted question";
       setSaveError(
-        "Complete every required answer in this section before proceeding."
+        `Complete every required answer for: ${questionLabel}`
       );
       return;
     }
