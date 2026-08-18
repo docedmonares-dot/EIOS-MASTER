@@ -186,6 +186,11 @@ export default function PreviewRenderer({
             onResponseChange={
               onResponseChange
             }
+            contextResponses={responses}
+            canGoPrevious={canGoPrevious}
+            canGoNext={canGoNext}
+            onPrevious={onPrevious}
+            onNext={onNext}
           />
         </main>
       </div>

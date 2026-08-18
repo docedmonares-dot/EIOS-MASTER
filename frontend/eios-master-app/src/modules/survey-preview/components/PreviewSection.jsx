@@ -1,19 +1,55 @@
+import { useState } from "react";
+
 import {
   PreviewQuestion,
 } from "./index";
+import { isQuestionAnswerValid } from "../../survey-engine/runtime/questionTypeRegistry";
 
 export default function PreviewSection({
   section = null,
   responses = {},
   onResponseChange,
   sectionNumber = 1,
+  contextResponses = {},
+  canGoPrevious = false,
+  canGoNext = false,
+  onPrevious,
+  onNext,
 }) {
+  const [navigationError, setNavigationError] =
+    useState("");
   if (!section) {
     return null;
   }
 
   const questions =
     section.questions || [];
+
+  function handleNext() {
+    const incomplete = questions.filter(
+      (question) =>
+        Boolean(
+          question.required ||
+            question.required_flag ||
+            question.required_override
+        ) &&
+        !isQuestionAnswerValid(
+          question,
+          responses[question.variable_name],
+          contextResponses
+        )
+    );
+
+    if (incomplete.length > 0) {
+      setNavigationError(
+        "Complete every required answer in this section before proceeding."
+      );
+      return;
+    }
+
+    setNavigationError("");
+    onNext?.();
+  }
 
   return (
     <section className="preview-section">
@@ -62,11 +98,67 @@ export default function PreviewSection({
                     value
                   )
                 }
+                contextResponses={
+                  contextResponses
+                }
               />
             )
           )}
         </div>
       )}
+
+      {navigationError && (
+        <div
+          role="alert"
+          className="ballot-selector-locked"
+          style={{ marginTop: "18px" }}
+        >
+          {navigationError}
+        </div>
+      )}
+
+      <footer
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            canGoPrevious ? "1fr 1fr" : "1fr",
+          gap: "12px",
+          marginTop: "22px",
+        }}
+      >
+        {canGoPrevious && (
+          <button
+            type="button"
+            onClick={() => {
+              setNavigationError("");
+              onPrevious?.();
+            }}
+          >
+            Previous Section
+          </button>
+        )}
+
+        {canGoNext ? (
+          <button
+            type="button"
+            onClick={handleNext}
+            style={{
+              minHeight: "52px",
+              border: 0,
+              borderRadius: "12px",
+              background: "#2563eb",
+              color: "#fff",
+              fontWeight: 700,
+            }}
+          >
+            Next Section
+          </button>
+        ) : (
+          <button type="button" disabled>
+            End of Preview
+          </button>
+        )}
+      </footer>
     </section>
   );
 }

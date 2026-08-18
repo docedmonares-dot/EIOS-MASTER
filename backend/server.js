@@ -157,6 +157,11 @@ app.use(
 );
 
 app.use(
+    "/api/data-exports",
+    require("./src/routes/dataExports")
+);
+
+app.use(
     "/api/field-map",
     require("./src/routes/fieldMap")
 );

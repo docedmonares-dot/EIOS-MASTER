@@ -104,6 +104,8 @@ export default function QuestionnaireDesignerPage() {
     addEnterpriseQuestion,
     saveQuestionItem,
     cancelQuestionEdit,
+    toggleSelectedSection,
+    deleteQuestionItem,
 
     compilerOpen,
     compiling,
@@ -433,8 +435,14 @@ function handlePreview() {
   onQuickCreateQuestion={
     quickCreateQuestion
   }
-   onSaveQuestion={
+  onSaveQuestion={
     saveQuestionItem
+  }
+  onToggleSection={
+    toggleSelectedSection
+  }
+  onDeleteQuestion={
+    deleteQuestionItem
   }
 />
 

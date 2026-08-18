@@ -20,7 +20,7 @@ import {
   runQuestionLogicRuntime,
 } from "../../survey-engine/runtime/logicRuntime";
 import { PreviewQuestion } from "../../survey-preview/components";
-import { isAnswerEmpty } from "../../survey-engine/runtime/questionTypeRegistry";
+import { isQuestionAnswerValid } from "../../survey-engine/runtime/questionTypeRegistry";
 import "../../survey-preview/styles/preview.css";
 
 export default function FieldInterviewRuntimePage() {
@@ -58,6 +58,11 @@ export default function FieldInterviewRuntimePage() {
     setSaveError,
   ] = useState("");
 
+  const [
+    activeSectionIndex,
+    setActiveSectionIndex,
+  ] = useState(0);
+
   useEffect(() => {
     if (!deploymentId) {
       return;
@@ -81,6 +86,104 @@ export default function FieldInterviewRuntimePage() {
       logicRules,
       answersByQuestionId,
     ]);
+
+  const responsesByVariable = useMemo(
+    () =>
+      Object.fromEntries(
+        questions
+          .filter(
+            (question) =>
+              question.variable_name
+          )
+          .map((question) => [
+            question.variable_name,
+            answersByQuestionId[
+              question.question_id
+            ],
+          ])
+      ),
+    [questions, answersByQuestionId]
+  );
+
+  const runtimeSections = useMemo(() => {
+    const sectionMap = new Map();
+
+    questions.forEach((question) => {
+      const sectionCode =
+        question.section_code ||
+        question.section_id ||
+        "UNASSIGNED";
+      const existing = sectionMap.get(
+        sectionCode
+      ) || {
+        section_code: sectionCode,
+        section_title:
+          question.section_title ||
+          "Survey Questions",
+        questions: [],
+      };
+
+      existing.questions.push(question);
+      sectionMap.set(sectionCode, existing);
+    });
+
+    return [...sectionMap.values()];
+  }, [questions]);
+
+  const activeRuntimeSection =
+    runtimeSections[activeSectionIndex] ||
+    runtimeSections[0] || {
+      section_title: "Survey Questions",
+      questions: [],
+    };
+
+  function goToNextSection() {
+    const incomplete =
+      activeRuntimeSection.questions.filter(
+        (question) => {
+          const required = Boolean(
+            question.required_override ||
+              question.required_flag ||
+              question.required
+          );
+
+          return (
+            required &&
+            !isQuestionAnswerValid(
+              question,
+              answersByQuestionId[
+                question.question_id
+              ],
+              responsesByVariable
+            )
+          );
+        }
+      );
+
+    if (incomplete.length > 0) {
+      setSaveError(
+        "Complete every required answer in this section before proceeding."
+      );
+      return;
+    }
+
+    setSaveError("");
+    setActiveSectionIndex((current) =>
+      Math.min(
+        current + 1,
+        runtimeSections.length - 1
+      )
+    );
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function goToPreviousSection() {
+    setSaveError("");
+    setActiveSectionIndex((current) =>
+      Math.max(current - 1, 0)
+    );
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   const conditionalShowQuestionIds =
     useMemo(() => {
@@ -165,7 +268,8 @@ export default function FieldInterviewRuntimePage() {
         (question) => {
           if (
             question.required_override ||
-            question.required_flag
+            question.required_flag ||
+            question.required
           ) {
             requiredQuestionIds.add(
               question.question_id
@@ -226,7 +330,11 @@ export default function FieldInterviewRuntimePage() {
                 questionId
               ];
 
-            return isAnswerEmpty(value);
+            return !isQuestionAnswerValid(
+              question,
+              value,
+              responsesByVariable
+            );
           }
         );
 
@@ -395,7 +503,23 @@ export default function FieldInterviewRuntimePage() {
             gap: "18px",
           }}
         >
-          {questions.map(
+          <header
+            style={{
+              padding: "14px 16px",
+              border: "1px solid #dbe5f1",
+              borderRadius: "12px",
+              background: "#f8fbff",
+            }}
+          >
+            <strong>
+              Section {activeSectionIndex + 1} of {runtimeSections.length}
+            </strong>
+            <h2 style={{ margin: "6px 0 0" }}>
+              {activeRuntimeSection.section_title}
+            </h2>
+          </header>
+
+          {activeRuntimeSection.questions.map(
             (question) => {
               const questionId =
                 question.question_id;
@@ -445,7 +569,8 @@ export default function FieldInterviewRuntimePage() {
                 Boolean(
                   requiredByLogic ||
                     question.required_override ||
-                    question.required_flag
+                    question.required_flag ||
+                    question.required
                 );
 
               return (
@@ -468,6 +593,9 @@ export default function FieldInterviewRuntimePage() {
                     }
                     questionNumber={
                       questions.indexOf(question) + 1
+                    }
+                    contextResponses={
+                      responsesByVariable
                     }
                   />
               );
@@ -505,33 +633,71 @@ export default function FieldInterviewRuntimePage() {
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={saveInterview}
-          disabled={savingInterview}
+        <div
           style={{
-            width: "100%",
-            minHeight: "58px",
+            display: "grid",
+            gridTemplateColumns:
+              activeSectionIndex > 0
+                ? "1fr 1fr"
+                : "1fr",
+            gap: "12px",
             marginTop: "22px",
-            border: 0,
-            borderRadius: "14px",
-            fontSize: "17px",
-            fontWeight: 700,
-            background: savingInterview
-              ? "#cbd5e1"
-              : "#2563eb",
-            color: savingInterview
-              ? "#475569"
-              : "#ffffff",
-            cursor: savingInterview
-              ? "not-allowed"
-              : "pointer",
           }}
         >
-          {savingInterview
-            ? "Saving Interview..."
-            : "Save Interview"}
-        </button>
+          {activeSectionIndex > 0 && (
+            <button
+              type="button"
+              onClick={goToPreviousSection}
+              style={{ minHeight: "54px" }}
+            >
+              Previous Section
+            </button>
+          )}
+
+          {activeSectionIndex <
+          runtimeSections.length - 1 ? (
+            <button
+              type="button"
+              onClick={goToNextSection}
+              style={{
+                minHeight: "54px",
+                border: 0,
+                borderRadius: "12px",
+                background: "#2563eb",
+                color: "#fff",
+                fontWeight: 700,
+              }}
+            >
+              Next Section
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={saveInterview}
+              disabled={savingInterview}
+              style={{
+                minHeight: "58px",
+                border: 0,
+                borderRadius: "14px",
+                fontSize: "17px",
+                fontWeight: 700,
+                background: savingInterview
+                  ? "#cbd5e1"
+                  : "#2563eb",
+                color: savingInterview
+                  ? "#475569"
+                  : "#ffffff",
+                cursor: savingInterview
+                  ? "not-allowed"
+                  : "pointer",
+              }}
+            >
+              {savingInterview
+                ? "Saving Interview..."
+                : "Review and Save Interview"}
+            </button>
+          )}
+        </div>
 
       </section>
     </MainLayout>

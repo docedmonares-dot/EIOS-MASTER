@@ -93,7 +93,10 @@ export default function DesignerExplorer({
 
               <span>
                 {section.section_type} ·{" "}
-                {itemCount} items
+                {itemCount} items ·{" "}
+                {section.settings_json?.is_applicable === false
+                  ? "Off"
+                  : "On"}
               </span>
             </div>
           </button>

@@ -41,6 +41,15 @@ router.post(
     controller.createSection
 );
 
+router.put(
+    "/:surveyId/sections/:sectionId",
+    verifyToken,
+    requirePermission(
+        PERMISSIONS.OPERATIONS.MANAGE
+    ),
+    controller.updateSection
+);
+
 /* =========================================================
    CREATE SURVEY-LOCAL QUESTION
 ========================================================= */
@@ -78,6 +87,15 @@ router.put(
         PERMISSIONS.OPERATIONS.MANAGE
     ),
     controller.updateQuestionnaireItem
+);
+
+router.delete(
+    "/:surveyId/items/:itemId",
+    verifyToken,
+    requirePermission(
+        PERMISSIONS.OPERATIONS.MANAGE
+    ),
+    controller.deleteQuestionnaireItem
 );
 
 module.exports = router;

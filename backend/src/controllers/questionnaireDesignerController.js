@@ -243,7 +243,30 @@ exports.getDesignerWorkspace = async (req, res) => {
                 COALESCE(
                     local.choice_list_id,
                     bank.choice_list_id
-                ) AS choice_list_id
+                ) AS choice_list_id,
+
+                COALESCE(
+                    (
+                        SELECT jsonb_agg(
+                            jsonb_build_object(
+                                'option_code', choice.choice_code,
+                                'option_value', COALESCE(choice.text_value, choice.choice_code),
+                                'option_label', choice.choice_label,
+                                'sort_order', choice.display_order,
+                                'is_none_option', choice.is_none_option,
+                                'is_active', choice.is_active
+                            )
+                            ORDER BY choice.display_order, choice.choice_label
+                        )
+                        FROM question_choices AS choice
+                        WHERE choice.choice_list_id = COALESCE(
+                            local.choice_list_id,
+                            bank.choice_list_id
+                        )
+                          AND choice.is_active = TRUE
+                    ),
+                    '[]'::jsonb
+                ) AS choice_options
             FROM survey_questionnaire_items AS item
             LEFT JOIN survey_local_questions AS local
                 ON local.local_question_id =
@@ -1166,7 +1189,11 @@ exports.updateQuestionnaireItem = async (req, res) => {
                 item.label_override,
                 item.item_settings_json,
                 item.is_active
+                ,local.choice_list_id
+                ,local.settings_json AS question_settings_json
             FROM survey_questionnaire_items AS item
+            LEFT JOIN survey_local_questions AS local
+                ON local.local_question_id = item.local_question_id
             WHERE item.questionnaire_item_id = $1
               AND item.survey_id = $2
               AND item.is_active = TRUE
@@ -1327,7 +1354,7 @@ exports.updateQuestionnaireItem = async (req, res) => {
                     SET
                         section_id = $1,
                         question_type_id = $2,
-                        choice_list_id = $3,
+                        choice_list_id = COALESCE($3, choice_list_id),
                         question_text = $4,
                         question_description = $5,
                         variable_name = $6,
@@ -1356,7 +1383,8 @@ exports.updateQuestionnaireItem = async (req, res) => {
                         requestedSectionId,
                         questionTypeId,
                         cleanText(
-                            req.body?.choice_list_id
+                            req.body?.choice_list_id ||
+                                existingItem.choice_list_id
                         ),
                         questionText,
                         cleanText(
@@ -1416,11 +1444,104 @@ exports.updateQuestionnaireItem = async (req, res) => {
 
             updatedQuestion =
                 localQuestionResult.rows[0] || null;
+
+            const electionPosition =
+                req.body?.settings_json
+                    ?.election_position;
+
+            if (
+                electionPosition?.position_code &&
+                typeof electionPosition.is_applicable === "boolean"
+            ) {
+                await client.query(
+                    `
+                    UPDATE survey_local_questions
+                    SET
+                        settings_json = jsonb_set(
+                            COALESCE(settings_json, '{}'::jsonb),
+                            '{election_position,is_applicable}',
+                            to_jsonb($1::boolean),
+                            TRUE
+                        ),
+                        updated_by = $2,
+                        updated_at = NOW()
+                    WHERE survey_id = $3
+                      AND is_active = TRUE
+                      AND settings_json
+                          -> 'election_position'
+                          ->> 'position_code' = $4
+                    `,
+                    [
+                        electionPosition.is_applicable,
+                        requestedBy,
+                        surveyId,
+                        electionPosition.position_code
+                    ]
+                );
+            }
+
+            if (
+                Array.isArray(req.body?.choice_options) &&
+                existingItem.choice_list_id
+            ) {
+                const editableListResult = await client.query(
+                    `SELECT choice_list_id
+                     FROM question_choice_lists
+                     WHERE choice_list_id = $1
+                       AND is_system_list = FALSE
+                       AND is_active = TRUE
+                     LIMIT 1`,
+                    [existingItem.choice_list_id]
+                );
+
+                if (editableListResult.rows.length === 0) {
+                    throw new Error(
+                        "This question uses a governed system choice list that cannot be edited here."
+                    );
+                }
+
+                await client.query(
+                    "DELETE FROM question_choices WHERE choice_list_id = $1",
+                    [existingItem.choice_list_id]
+                );
+
+                for (const [optionIndex, option] of req.body.choice_options.entries()) {
+                    const optionCode = normalizeVariableName(
+                        option?.option_code ||
+                            `candidate_${optionIndex + 1}`
+                    ).toUpperCase();
+                    const optionLabel = cleanText(
+                        option?.option_label
+                    );
+
+                    if (!optionCode || !optionLabel) {
+                        throw new Error(
+                            "Every candidate option requires a stable code and display label."
+                        );
+                    }
+
+                    await client.query(
+                        `INSERT INTO question_choices (
+                            choice_list_id, choice_code, choice_label,
+                            text_value, display_order, is_none_option,
+                            is_active, metadata_json, created_by, updated_by
+                         ) VALUES ($1, $2, $3, $4, $5, $6, TRUE, '{}'::jsonb, $7, $7)`,
+                        [
+                            existingItem.choice_list_id,
+                            optionCode,
+                            optionLabel,
+                            optionCode,
+                            optionIndex + 1,
+                            optionCode === "UNDECIDED",
+                            requestedBy
+                        ]
+                    );
+                }
+            }
         }
 
         const itemSettingsJson =
             req.body?.item_settings_json ||
-            req.body?.settings_json ||
             existingItem.item_settings_json ||
             {};
 
@@ -1487,7 +1608,7 @@ exports.updateQuestionnaireItem = async (req, res) => {
                 questionnaire_item_id,
                 event_type,
                 event_message,
-                old_value_json,
+                previous_value_json,
                 new_value_json,
                 acted_by
             )
@@ -1564,6 +1685,150 @@ exports.updateQuestionnaireItem = async (req, res) => {
             success: false,
             message:
                 "Unable to update the questionnaire item.",
+            error: error.message
+        });
+    } finally {
+        client.release();
+    }
+};
+
+exports.updateSection = async (req, res) => {
+    try {
+        const surveyId = cleanText(req.params?.surveyId);
+        const sectionId = cleanText(req.params?.sectionId);
+
+        if (!surveyId || !sectionId) {
+            return res.status(400).json({
+                success: false,
+                message: "Survey ID and section ID are required."
+            });
+        }
+
+        const existingResult = await pool.query(
+            `SELECT * FROM survey_sections
+             WHERE survey_id = $1 AND section_id = $2 AND is_active = TRUE
+             LIMIT 1`,
+            [surveyId, sectionId]
+        );
+        const existing = existingResult.rows[0];
+
+        if (!existing) {
+            return res.status(404).json({
+                success: false,
+                message: "Questionnaire section was not found."
+            });
+        }
+
+        const nextSettings = {
+            ...(existing.settings_json || {}),
+            ...(req.body?.settings_json || {})
+        };
+        const requestedBy = req.user?.user_id || existing.updated_by;
+
+        const result = await pool.query(
+            `UPDATE survey_sections
+             SET section_title = $1,
+                 section_description = $2,
+                 section_type = $3,
+                 settings_json = $4::jsonb,
+                 updated_by = $5,
+                 updated_at = NOW()
+             WHERE survey_id = $6 AND section_id = $7 AND is_active = TRUE
+             RETURNING *`,
+            [
+                cleanText(req.body?.section_title) || existing.section_title,
+                req.body?.section_description !== undefined
+                    ? cleanText(req.body.section_description)
+                    : existing.section_description,
+                cleanText(req.body?.section_type) || existing.section_type,
+                JSON.stringify(nextSettings),
+                requestedBy,
+                surveyId,
+                sectionId
+            ]
+        );
+
+        return res.json({
+            success: true,
+            message: nextSettings.is_applicable === false
+                ? "Section excluded from the compiled instrument."
+                : "Section included in the compiled instrument.",
+            data: result.rows[0]
+        });
+    } catch (error) {
+        console.error("UPDATE QUESTIONNAIRE SECTION ERROR:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Unable to update the questionnaire section.",
+            error: error.message
+        });
+    }
+};
+
+exports.deleteQuestionnaireItem = async (req, res) => {
+    const client = await pool.connect();
+
+    try {
+        const surveyId = cleanText(req.params?.surveyId);
+        const itemId = cleanText(req.params?.itemId);
+
+        if (!surveyId || !itemId) {
+            return res.status(400).json({
+                success: false,
+                message: "Survey ID and questionnaire item ID are required."
+            });
+        }
+
+        await client.query("BEGIN");
+        const itemResult = await client.query(
+            `SELECT * FROM survey_questionnaire_items
+             WHERE survey_id = $1
+               AND questionnaire_item_id = $2
+               AND is_active = TRUE
+             FOR UPDATE`,
+            [surveyId, itemId]
+        );
+        const item = itemResult.rows[0];
+
+        if (!item) {
+            await client.query("ROLLBACK");
+            return res.status(404).json({
+                success: false,
+                message: "Questionnaire item was not found."
+            });
+        }
+
+        const requestedBy = req.user?.user_id || req.user?.id || null;
+
+        await client.query(
+            `UPDATE survey_questionnaire_items
+             SET is_active = FALSE, updated_by = $1, updated_at = NOW()
+             WHERE questionnaire_item_id = $2`,
+            [requestedBy, itemId]
+        );
+
+        if (item.item_source === "Survey Local" && item.local_question_id) {
+            await client.query(
+                `UPDATE survey_local_questions
+                 SET is_active = FALSE, updated_by = $1, updated_at = NOW()
+                 WHERE local_question_id = $2 AND survey_id = $3`,
+                [requestedBy, item.local_question_id, surveyId]
+            );
+        }
+
+        await client.query("COMMIT");
+
+        return res.json({
+            success: true,
+            message: "Question removed from the draft instrument.",
+            data: { questionnaire_item_id: itemId, archived: true }
+        });
+    } catch (error) {
+        await client.query("ROLLBACK");
+        console.error("DELETE QUESTIONNAIRE ITEM ERROR:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Unable to remove the questionnaire item.",
             error: error.message
         });
     } finally {

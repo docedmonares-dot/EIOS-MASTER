@@ -38,6 +38,10 @@ const initialForm = {
   is_personally_identifiable: false,
   page_number: 1,
   sort_order: 0,
+  choice_list_id: "",
+  choice_options: [],
+  settings_json: {},
+  item_settings_json: { is_applicable: true },
 };
 
 function normalizeItem(item) {
@@ -83,6 +87,31 @@ function normalizeItem(item) {
 
     sort_order:
       Number(item.sort_order || 0),
+
+    choice_list_id:
+      item.choice_list_id || "",
+
+    choice_options: Array.isArray(
+      item.choice_options
+    )
+      ? item.choice_options.map((option) => ({
+          ...option,
+        }))
+      : [],
+
+    settings_json:
+      item.settings_json &&
+      typeof item.settings_json === "object"
+        ? JSON.parse(
+            JSON.stringify(item.settings_json)
+          )
+        : {},
+
+    item_settings_json:
+      item.item_settings_json &&
+      typeof item.item_settings_json === "object"
+        ? JSON.parse(JSON.stringify(item.item_settings_json))
+        : { is_applicable: true },
   };
 }
 
@@ -217,6 +246,76 @@ export default function EnterpriseQuestionInspector({
 
       sort_order:
         Number(form.sort_order || 0),
+
+      choice_list_id:
+        form.choice_list_id || null,
+
+      choice_options:
+        form.choice_options,
+
+      settings_json:
+        form.settings_json,
+
+      item_settings_json:
+        form.item_settings_json,
+    });
+  }
+
+  function updateChoiceOption(
+    optionIndex,
+    field,
+    value
+  ) {
+    updateField(
+      "choice_options",
+      form.choice_options.map(
+        (option, index) =>
+          index === optionIndex
+            ? {
+                ...option,
+                [field]: value,
+              }
+            : option
+      )
+    );
+  }
+
+  function addChoiceOption() {
+    const nextIndex =
+      form.choice_options.length + 1;
+    const optionCode =
+      `CANDIDATE_${Date.now()}`;
+
+    updateField("choice_options", [
+      ...form.choice_options,
+      {
+        option_code: optionCode,
+        option_value: optionCode,
+        option_label: `Candidate ${nextIndex}`,
+        sort_order: nextIndex,
+        is_none_option: false,
+        is_active: true,
+      },
+    ]);
+  }
+
+  function removeChoiceOption(optionIndex) {
+    updateField(
+      "choice_options",
+      form.choice_options.filter(
+        (_, index) => index !== optionIndex
+      )
+    );
+  }
+
+  function updateElectionSetting(field, value) {
+    updateField("settings_json", {
+      ...form.settings_json,
+      election_position: {
+        ...(form.settings_json
+          ?.election_position || {}),
+        [field]: value,
+      },
     });
   }
 
@@ -592,6 +691,171 @@ export default function EnterpriseQuestionInspector({
               }
             >
               Save Changes
+            </EEUIButton>
+          </footer>
+        </form>
+      ) : activeTab === "Options" &&
+        form.choice_list_id ? (
+        <form
+          className="enterprise-question-inspector__form"
+          onSubmit={handleSubmit}
+        >
+          <div className="enterprise-question-inspector__grid">
+            <div className="enterprise-question-inspector__field enterprise-question-inspector__field--full">
+              <span>Position Applicability</span>
+              <p style={{ margin: "6px 0 10px" }}>
+                A position marked Not Applicable is omitted from AST,
+                the ballot, tenacity questions, preview, and Enumerator
+                interviews without deleting its configuration.
+              </p>
+              <EEUIButton
+                type="button"
+                variant={
+                  form.settings_json?.election_position
+                    ?.is_applicable === false
+                    ? "primary"
+                    : "secondary"
+                }
+                onClick={() =>
+                  updateElectionSetting(
+                    "is_applicable",
+                    form.settings_json?.election_position
+                      ?.is_applicable === false
+                  )
+                }
+                disabled={saving}
+              >
+                {form.settings_json?.election_position
+                  ?.is_applicable === false
+                  ? "Not Applicable — Click to Include Position"
+                  : "Mark Position as Not Applicable"}
+              </EEUIButton>
+            </div>
+
+            <label className="enterprise-question-inspector__field">
+              <span>Position Name</span>
+              <input
+                type="text"
+                value={
+                  form.settings_json
+                    ?.election_position
+                    ?.position_name || ""
+                }
+                onChange={(event) =>
+                  updateElectionSetting(
+                    "position_name",
+                    event.target.value
+                  )
+                }
+                disabled={saving}
+              />
+            </label>
+
+            <label className="enterprise-question-inspector__field">
+              <span>Maximum Selections</span>
+              <input
+                type="number"
+                min="1"
+                value={
+                  form.settings_json
+                    ?.election_position
+                    ?.max_selections || 1
+                }
+                onChange={(event) =>
+                  updateElectionSetting(
+                    "max_selections",
+                    Number(event.target.value || 1)
+                  )
+                }
+                disabled={saving}
+              />
+            </label>
+
+            <div className="enterprise-question-inspector__field enterprise-question-inspector__field--full">
+              <span>Editable Candidate Roster</span>
+
+              {form.choice_options.map(
+                (option, optionIndex) => (
+                  <div
+                    key={
+                      option.option_code ||
+                      optionIndex
+                    }
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "minmax(0, 1fr) auto",
+                      gap: "8px",
+                      marginTop: "8px",
+                    }}
+                  >
+                    <input
+                      type="text"
+                      value={
+                        option.option_label || ""
+                      }
+                      onChange={(event) =>
+                        updateChoiceOption(
+                          optionIndex,
+                          "option_label",
+                          event.target.value
+                        )
+                      }
+                      disabled={saving}
+                    />
+
+                    <EEUIButton
+                      type="button"
+                      variant="secondary"
+                      onClick={() =>
+                        removeChoiceOption(
+                          optionIndex
+                        )
+                      }
+                      disabled={
+                        saving ||
+                        String(
+                          option.option_code || ""
+                        ).toUpperCase() ===
+                          "UNDECIDED"
+                      }
+                    >
+                      Remove
+                    </EEUIButton>
+                  </div>
+                )
+              )}
+
+              <EEUIButton
+                type="button"
+                variant="secondary"
+                onClick={addChoiceOption}
+                disabled={saving}
+                style={{ marginTop: "10px" }}
+              >
+                Add Candidate
+              </EEUIButton>
+            </div>
+          </div>
+
+          <footer className="enterprise-question-inspector__actions">
+            <EEUIButton
+              type="button"
+              variant="secondary"
+              icon={X}
+              onClick={handleCancel}
+              disabled={saving || !dirty}
+            >
+              Cancel
+            </EEUIButton>
+
+            <EEUIButton
+              type="submit"
+              icon={Save}
+              loading={saving}
+              disabled={saving || !dirty}
+            >
+              Save Options
             </EEUIButton>
           </footer>
         </form>

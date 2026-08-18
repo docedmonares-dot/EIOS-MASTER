@@ -3,6 +3,7 @@ import {
   FileText,
   Pencil,
   Plus,
+  Trash2,
   X,
 } from "lucide-react";
 
@@ -23,6 +24,8 @@ export default function DesignerCanvas({
   onAddQuestion,
   onQuickCreateQuestion,
   onSaveQuestion,
+  onToggleSection,
+  onDeleteQuestion,
 }) {
   const [quickAddOpen, setQuickAddOpen] =
     useState(false);
@@ -295,6 +298,19 @@ export default function DesignerCanvas({
           <Plus size={18} />
           Add Question
         </button>
+
+        {selectedSection && (
+          <button
+            type="button"
+            onClick={onToggleSection}
+            disabled={saving}
+            title="Include or exclude this entire section from the compiled instrument"
+          >
+            {selectedSection.settings_json?.is_applicable === false
+              ? "Include Section"
+              : "Not Applicable"}
+          </button>
+        )}
       </div>
 
       {quickAddOpen && (
@@ -609,6 +625,27 @@ export default function DesignerCanvas({
                         />
                       </button>
                     )}
+
+                  {!editing && (
+                    <button
+                      type="button"
+                      aria-label="Delete question"
+                      title="Delete question"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if (
+                          window.confirm(
+                            "Delete this question from the draft instrument? Published versions will not be changed."
+                          )
+                        ) {
+                          onDeleteQuestion?.(itemId);
+                        }
+                      }}
+                      disabled={saving}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </article>
               );
             }

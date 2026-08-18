@@ -9,8 +9,10 @@
     "db:migrate": "node scripts/run-migrations.js migrate",
     "db:migrations:status": "node scripts/run-migrations.js status",
     "db:migrations:baseline": "node scripts/run-migrations.js baseline",
-    "test": "npm run test:geographic",
+    "survey:build:eastern-samar-pilot": "node scripts/build-eastern-samar-pilot.js",
+    "test": "npm run test:geographic && npm run test:data-export",
     "test:geographic": "node test-geographic-selector-contract.js"
+    ,"test:data-export": "node test-data-export-contract.js"
   },
   "keywords": [],
   "author": "",

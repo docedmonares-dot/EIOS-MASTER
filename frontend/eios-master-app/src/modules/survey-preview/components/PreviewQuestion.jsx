@@ -2,6 +2,10 @@ import {
   GeographicSelectorQuestion,
 } from "./index";
 import { isGeographicSelectorQuestion } from "../../survey-engine/runtime/questionTypeRegistry";
+import {
+  BallotSelectorControl,
+  CandidateEvaluationControl,
+} from "./ElectionResearchControls";
 
 function renderTextInput({
   question,
@@ -292,12 +296,34 @@ function renderQuestionControl({
   question,
   value,
   onChange,
+  contextResponses,
 }) {
   const typeCode =
     String(
       question.question_type
-        ?.type_code || ""
+      ?.type_code || ""
     ).toLowerCase();
+
+  if (typeCode === "candidate_evaluation") {
+    return (
+      <CandidateEvaluationControl
+        question={question}
+        value={value}
+        onChange={onChange}
+      />
+    );
+  }
+
+  if (typeCode === "ballot_selector") {
+    return (
+      <BallotSelectorControl
+        question={question}
+        value={value}
+        onChange={onChange}
+        contextResponses={contextResponses}
+      />
+    );
+  }
 
   if (isGeographicSelectorQuestion(question)) {
   return (
@@ -378,6 +404,7 @@ export default function PreviewQuestion({
   value,
   onChange,
   questionNumber,
+  contextResponses = {},
 }) {
   if (!question) {
     return null;
@@ -420,6 +447,7 @@ export default function PreviewQuestion({
           question,
           value,
           onChange,
+          contextResponses,
         })}
       </div>
 

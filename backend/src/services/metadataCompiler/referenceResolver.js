@@ -215,7 +215,17 @@ function resolveSurveyReferences(metadata) {
                             ? "Resolved"
                             : "Missing Question Definition",
                 };
-            });
+            })
+            .filter(
+                (resolvedItem) =>
+                    resolvedItem.question
+                        ?.item_settings_json
+                        ?.is_applicable !== false &&
+                    resolvedItem.question
+                        ?.settings_json
+                        ?.election_position
+                        ?.is_applicable !== false
+            );
 
     return {
         ...metadata,

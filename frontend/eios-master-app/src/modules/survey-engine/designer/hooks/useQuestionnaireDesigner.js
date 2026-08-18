@@ -13,8 +13,10 @@ import {
   addEnterpriseQuestionToSurvey,
   createQuestionnaireSection,
   createSurveyLocalQuestion,
+  deleteQuestionnaireItem,
   getQuestionnaireDesignerWorkspace,
   updateQuestionnaireItem,
+  updateQuestionnaireSection,
 } from "../../../../services/questionnaireDesignerService";
 
 const initialSectionForm = {
@@ -661,6 +663,69 @@ export default function useQuestionnaireDesigner(
     setInspectorErrorMessage("");
   }
 
+  async function toggleSelectedSection() {
+    if (!selectedSection?.section_id) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setSuccessMessage("");
+      const currentlyIncluded =
+        selectedSection.settings_json?.is_applicable !== false;
+
+      await updateQuestionnaireSection(
+        surveyId,
+        selectedSection.section_id,
+        {
+          settings_json: {
+            ...selectedSection.settings_json,
+            is_applicable: !currentlyIncluded,
+          },
+        }
+      );
+
+      setSuccessMessage(
+        currentlyIncluded
+          ? "Section marked Not Applicable and excluded from compilation."
+          : "Section included in the instrument."
+      );
+      await loadWorkspace();
+    } catch (error) {
+      setInspectorErrorMessage(
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to change section applicability."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function deleteQuestionItem(itemId) {
+    if (!itemId) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setSuccessMessage("");
+      setInspectorErrorMessage("");
+      await deleteQuestionnaireItem(surveyId, itemId);
+      setSelectedItemId("");
+      setSuccessMessage("Question deleted from the draft instrument.");
+      await loadWorkspace();
+    } catch (error) {
+      setInspectorErrorMessage(
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to delete the question."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
   /* =========================================================
      METADATA COMPILER
   ========================================================= */
@@ -792,6 +857,8 @@ export default function useQuestionnaireDesigner(
     addEnterpriseQuestion,
     saveQuestionItem,
     cancelQuestionEdit,
+    toggleSelectedSection,
+    deleteQuestionItem,
 
     compilerOpen,
     compiling,

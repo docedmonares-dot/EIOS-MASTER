@@ -129,6 +129,22 @@ export async function createQuestionnaireSection(
   return response.data.data;
 }
 
+export async function updateQuestionnaireSection(
+  surveyId,
+  sectionId,
+  sectionData
+) {
+  requireSurveyId(surveyId);
+
+  const response = await axios.put(
+    `${API}/questionnaire-designer/${surveyId}/sections/${sectionId}`,
+    sectionData,
+    { headers: getAuthorizationHeaders() }
+  );
+
+  return response.data.data;
+}
+
 /* =========================================================
    SURVEY-LOCAL QUESTIONS
 ========================================================= */
